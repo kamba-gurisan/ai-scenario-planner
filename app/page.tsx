@@ -117,7 +117,7 @@ const Icons = {
 
 const PROMPTS = {
   IMAGE_GENERATION: (imgPrompt: string) => 
-    `Papercraft style illustration, isometric view, soft lighting, detailed, 4k. ${imgPrompt}. In the middle ground, slightly positioned to the left or right side (not at the very edge to avoid cropping), subtly place a tiny cute Santa Claus character with a white beard, wearing a green outfit and a green hat, holding a single leaf in one hand. No text, no words.`
+    `Papercraft style illustration, isometric view, soft lighting, detailed, 4k. ${imgPrompt}. Subtly include a tiny observer figure wearing green attire fitting the scene's context, holding a notebook, blending into the middle ground environment. No text, no words.`
 };
 
 const RadarChart = ({ scenarios }: any) => {
