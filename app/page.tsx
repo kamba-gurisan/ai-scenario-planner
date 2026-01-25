@@ -14,12 +14,12 @@ import PptxGenJS from "pptxgenjs";
 // ⚠️ 重要: ここをあなたの本物の Firebase Config に書き換えてください！
 // =================================================================
 const firebaseConfig = {
-  apiKey: "AIza...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "..."
+  apiKey: "AIzaSyD4YzalqlL1wzzLB-zUTFwQCUTMNgyefWY",
+  authDomain: "ai-scenario-pro-2026.firebaseapp.com",
+  projectId: "ai-scenario-pro-2026",
+  storageBucket: "ai-scenario-pro-2026.firebasestorage.app",
+  messagingSenderId: "439423354212",
+  appId: "1:439423354212:web:62fc734dc452a03082e671"
 };
 
 // Firebase初期化
