@@ -394,7 +394,8 @@ export default function Home() {
 
     try {
       setImageLoading(scenario.id, true);
-      const basePrompt = scenario.imgPrompt || scenario.title;
+      // 新しいコード: STORY (物語の本文) を元に生成します
+      const basePrompt = scenario.imgPrompt || scenario.story;
       const prompt = PROMPTS.IMAGE_GENERATION(basePrompt);
       const res = await fetch("/api/generate", {
         method: "POST",
