@@ -117,7 +117,7 @@ const Icons = {
 
 const PROMPTS = {
   IMAGE_GENERATION: (imgPrompt: string) => 
-    `Papercraft style illustration, isometric view, soft lighting, detailed, 4k. ${imgPrompt}. Subtly include a tiny observer figure wearing green attire fitting the scene's context, holding a notebook, blending into the middle ground environment. No text, no words.`
+    `A breathtaking cinematic film still from a movie, dramatic lighting, atmospheric, highly detailed, wide angle shot, realistic texture, 8k resolution. ${imgPrompt}. No text, no words.`
 };
 
 const RadarChart = ({ scenarios }: any) => {
