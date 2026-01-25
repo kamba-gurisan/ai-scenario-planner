@@ -6,7 +6,8 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User 
 } from "firebase/auth";
 import { 
-  getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, updateDoc 
+  getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, 
+  doc, setDoc, updateDoc, increment, getDoc, Timestamp 
 } from "firebase/firestore";
 import PptxGenJS from "pptxgenjs";
 
@@ -26,6 +27,22 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// --- 💎 プラン定義と制限設定 ---
+const PLAN_LIMITS: any = {
+  free: {
+    scenarios: 3, // 月間シナリオ生成回数
+    images: 5,    // 月間画像生成回数
+    audios: 5,    // 月間音声生成回数
+    pptx: false   // PPTX出力 (false = 不可)
+  },
+  pro: {
+    scenarios: 100,
+    images: 100,
+    audios: 100,
+    pptx: true
+  }
+};
 
 // --- ヘルパー関数 ---
 const base64ToBlob = (base64: string, mimeType = 'audio/wav') => {
@@ -94,6 +111,7 @@ const Icons = {
   Save: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
   Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
   Presentation: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h20v14H2z"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg>,
+  Lock: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>,
   Loader: () => <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
 };
 
@@ -102,13 +120,10 @@ const PROMPTS = {
     `Papercraft style illustration, isometric view, soft lighting, detailed, 4k. ${imgPrompt}. In the middle ground, slightly positioned to the left or right side (not at the very edge to avoid cropping), subtly place a tiny cute Santa Claus character with a white beard, wearing a green outfit and a green hat, holding a single leaf in one hand. No text, no words.`
 };
 
-// ↓↓↓ RadarChart コンポーネントをこれに置き換えてください ↓↓↓
-
 const RadarChart = ({ scenarios }: any) => {
   const size = 200, center = size/2, radius = 80;
   const getPoint = (val: number, i: number, total: number) => {
     const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
-    // ★修正: 5段階評価なので、分母を 5 に変更。これでMax5のときに端まで届きます。
     const r = (val / 5) * radius;
     return `${center + r * Math.cos(angle)},${center + r * Math.sin(angle)}`;
   };
@@ -118,7 +133,6 @@ const RadarChart = ({ scenarios }: any) => {
   return (
     <div className="relative flex justify-center py-4">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
-        {/* ★修正: 目盛り線を 1, 2, 3, 4, 5 に変更 */}
         {[1, 2, 3, 4, 5].map(r => (
           <polygon key={r} points={labels.map((_, i) => getPoint(r, i, 5)).join(' ')} fill="none" stroke="#e2e8f0" strokeWidth="1" />
         ))}
@@ -126,7 +140,7 @@ const RadarChart = ({ scenarios }: any) => {
           <polygon key={s.id} points={s.allocation.map((a: any, i: number) => getPoint(a.val, i, 5)).join(' ')} fill={colors[s.colorCode]} stroke={colors[s.colorCode].replace('0.3','1')} strokeWidth="2" />
         ))}
         {labels.map((l, i) => {
-          const [x, y] = getPoint(6, i, 5).split(','); // ラベル位置を少し外側(6)へ
+          const [x, y] = getPoint(6, i, 5).split(',');
           return <text key={i} x={x} y={y} textAnchor="middle" fontSize="10" className="fill-gray-500 font-bold" dominantBaseline="middle">{l}</text>;
         })}
       </svg>
@@ -206,10 +220,12 @@ export default function Home() {
   
   const [result, setResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  // ★追加: PPTXエクスポート中フラグ
   const [isExporting, setIsExporting] = useState(false);
 
   const [user, setUser] = useState<User | null>(null);
+  // ★追加: ユーザーのプラン・利用状況
+  const [userData, setUserData] = useState<any>({ plan: 'free', usage: { scenarios: 0, images: 0, audios: 0 } });
+  
   const [history, setHistory] = useState<any[]>([]);
   
   const [audioCache, setAudioCache] = useState<any>({});
@@ -226,9 +242,42 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // --- ログイン & ユーザーデータ監視 ---
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
-    return () => unsubscribe();
+    const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      if (u) {
+        // ユーザー情報をFirestoreに保存/取得
+        const userRef = doc(db, "users", u.uid);
+        
+        // 初回ログイン時にドキュメントがなければ作成
+        // (merge: true なので既存データは消えない)
+        await setDoc(userRef, {
+          email: u.email,
+          lastLogin: serverTimestamp(),
+          // planがなければfreeを設定
+        }, { merge: true });
+
+        // リアルタイムで利用状況を監視
+        const unsubscribeSnapshot = onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserData({
+              plan: data.plan || 'free',
+              usage: {
+                scenarios: data.usage?.scenarios || 0,
+                images: data.usage?.images || 0,
+                audios: data.usage?.audios || 0,
+              }
+            });
+          }
+        });
+        return () => unsubscribeSnapshot();
+      } else {
+        setUserData({ plan: 'free', usage: { scenarios: 0, images: 0, audios: 0 } });
+      }
+    });
+    return () => unsubscribeAuth();
   }, []);
 
   useEffect(() => {
@@ -251,8 +300,43 @@ export default function Home() {
     setLoadingStates(prev => ({ ...prev, audios: { ...prev.audios, [id]: isLoading } }));
   };
 
+  // --- 制限チェック関数 ---
+  const checkLimit = (type: 'scenarios' | 'images' | 'audios' | 'pptx') => {
+    if (!user) return false;
+    const plan = userData.plan || 'free';
+    const limit = PLAN_LIMITS[plan][type];
+    
+    // PPTXのようなブール値制限の場合
+    if (typeof limit === 'boolean') {
+      if (!limit) {
+        alert("🔒 この機能はProプラン限定です。\nアップグレードして利用してください。");
+        return false;
+      }
+      return true;
+    }
+
+    // 回数制限の場合
+    const current = userData.usage[type] || 0;
+    if (current >= limit) {
+      alert(`⚠️ ${plan.toUpperCase()}プランの上限に達しました。\n(今月: ${current}/${limit}回)\n\n制限解除にはProプランへのアップグレードが必要です。`);
+      return false;
+    }
+    return true;
+  };
+
+  const incrementUsage = async (type: 'scenarios' | 'images' | 'audios') => {
+    if (!user) return;
+    const userRef = doc(db, "users", user.uid);
+    await updateDoc(userRef, {
+      [`usage.${type}`]: increment(1)
+    });
+  };
+
   const generateScenarios = async () => {
     if (!theme) return;
+    // ★制限チェック
+    if (!checkLimit('scenarios')) return;
+
     setIsLoading(true);
     setLoadingStates({ images: {}, audios: {} });
     setResult(null);
@@ -284,6 +368,9 @@ export default function Home() {
       setResult(finalResult);
 
       if (user) {
+        // ★使用回数カウントアップ
+        await incrementUsage('scenarios');
+        
         const docRef = await addDoc(collection(db, "scenarios"), {
           userId: user.uid,
           theme,
@@ -301,6 +388,9 @@ export default function Home() {
   };
 
   const handleGenerateImage = async (scenario: any) => {
+    // ★制限チェック
+    if (!checkLimit('images')) return;
+
     try {
       setImageLoading(scenario.id, true);
       const basePrompt = scenario.imgPrompt || scenario.title;
@@ -312,6 +402,9 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
+
+      // ★使用回数カウントアップ
+      await incrementUsage('images');
 
       const imageUrl = `data:image/png;base64,${data.base64}`;
       setResult((prev: any) => ({
@@ -345,6 +438,9 @@ export default function Home() {
       }
     }
 
+    // ★制限チェック
+    if (!checkLimit('audios')) return;
+
     try {
       setAudioLoading(scenario.id, true);
       const textToSpeak = scenario.audioTone ? `${scenario.audioTone} ${scenario.story}` : scenario.story;
@@ -355,6 +451,9 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
+
+      // ★使用回数カウントアップ
+      await incrementUsage('audios');
 
       const blob = pcmToWav(data.audioData);
       const url = URL.createObjectURL(blob);
@@ -377,8 +476,11 @@ export default function Home() {
     }
   };
 
- // --- プロフェッショナル仕様 PPTXエクスポート機能 (チャート型エラー修正版) ---
+  // --- PPTXエクスポート機能 ---
   const handleExportPptx = async () => {
+    // ★制限チェック (Proプランのみ)
+    if (!checkLimit('pptx')) return;
+
     if (!result) return;
     setIsLoading(true);
     setIsExporting(true);
@@ -438,7 +540,6 @@ export default function Home() {
       });
 
       if (summaryDetails) {
-        // as any で型エラー回避
         slide.addShape(pres.ShapeType.rect, { 
           x: 1.5, y: 3.2, w: 7, h: 1.8, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
@@ -471,7 +572,7 @@ export default function Home() {
       const centerX = chartX + chartW / 2;
       const centerY = chartY + chartH / 2;
 
-      // 軸線 (L字)
+      // 軸線
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY, w: 0, h: chartH, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY + chartH, w: chartW, h: 0, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
       slide.addShape(pres.ShapeType.line, { x: centerX, y: chartY, w: 0, h: chartH, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
@@ -512,13 +613,11 @@ export default function Home() {
           rectRadius: 0.05,
           shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } 
         } as any);
-
         slide.addShape(pres.ShapeType.rect, { 
           x: x, y: y, w: cardW, h: 0.08, 
           fill: { color: style.color }, 
           rectRadius: 0.02 
         } as any);
-
         slide.addText(`Scenario ${posId}`, { x: x + 0.2, y: y + 0.3, w: 2.0, fontSize: 10, bold: true, color: style.color });
         slide.addText(`${s.probability}%`, { x: x + cardW - 1.2, y: y + 0.3, w: 1.0, align: "right", fontSize: 10, bold: true, color: LAYOUT.COLOR.SUB });
         slide.addText(s.title, { 
@@ -549,7 +648,7 @@ export default function Home() {
         const p1 = pres.addSlide();
         p1.background = { color: LAYOUT.COLOR.BG };
 
-        // ヘッダーカード
+        // ヘッダー
         p1.addShape(pres.ShapeType.rect, { 
           x: 0.5, y: 0.3, w: 9.0, h: 0.8, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
@@ -557,7 +656,6 @@ export default function Home() {
           shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } 
         } as any);
         p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 0.15, h: 0.8, fill: { color: style.color } });
-        
         p1.addText(`${s.id}: ${s.title}`, { x: 0.8, y: 0.3, w: 7.0, h: 0.8, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI", valign: "middle" });
         p1.addText(`確率: ${s.probability}%`, { x: 8.0, y: 0.3, w: 1.3, h: 0.8, fontSize: 12, align: "center", color: style.color, bold: true, valign: "middle" });
 
@@ -586,7 +684,7 @@ export default function Home() {
         // ストーリー
         p1.addText("STORY", { x: 0.8, y: 3.3, fontSize: 10, bold: true, color: "94A3B8" });
         
-        // 音声埋め込み
+        // 音声
         const targetAudioUrl = s.audioUrl || audioCache[s.id];
         if (targetAudioUrl) {
           try {
@@ -635,7 +733,6 @@ export default function Home() {
           labels: ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"],
           values: s.allocation.map((a: any) => a.val)
         }];
-        // ★修正: legend オプションを含むオブジェクトに as any を追加
         p2.addChart(pres.ChartType.radar, chartData, { 
           x: 0.6, y: 1.5, w: 3.3, h: 3.3, 
           radarStyle: "marker", 
@@ -815,9 +912,17 @@ export default function Home() {
                 <button onClick={() => setResult(null)} className="flex items-center gap-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition" title="新しい分析を始める">
                   <Icons.Plus /> 新規
                 </button>
-                <button onClick={handleExportPptx} className="flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-2 rounded-lg transition" title="PowerPointで書き出し">
-                  <Icons.Presentation /> PPTX
-                </button>
+
+                {/* ★変更: Pro/Freeで出し分け */}
+                {userData.plan === 'pro' ? (
+                  <button onClick={handleExportPptx} className="flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-2 rounded-lg transition" title="PowerPointで書き出し">
+                    <Icons.Presentation /> PPTX
+                  </button>
+                ) : (
+                  <button onClick={() => alert("🔒 Proプラン限定機能です。")} className="flex items-center gap-1 text-xs font-bold text-gray-400 bg-gray-100 px-3 py-2 rounded-lg cursor-not-allowed" title="Proプランで利用可能">
+                    <Icons.Lock /> PPTX
+                  </button>
+                )}
               </>
             )}
             
@@ -832,6 +937,15 @@ export default function Home() {
 
             {user ? (
               <div className="flex items-center gap-4">
+                {/* ★変更: プラン情報表示 */}
+                <div className="text-right hidden sm:block">
+                  <div className={`text-xs font-bold ${userData.plan==='pro' ? 'text-indigo-600':'text-gray-500'}`}>
+                    {userData.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                  </div>
+                  <div className="text-[10px] text-gray-400">
+                    残り: {userData.plan==='pro' ? '∞' : 3 - userData.usage.scenarios}回
+                  </div>
+                </div>
                 <img src={user.photoURL || ""} className="w-8 h-8 rounded-full border border-gray-300" alt="user" />
                 <button onClick={() => auth.signOut()} className="text-xs text-gray-500 hover:text-red-500">Logout</button>
               </div>
@@ -843,7 +957,6 @@ export default function Home() {
       </header>
 
       {/* Loading Overlay */}
-      {/* ★修正: PPTX出力中かどうかでメッセージを切り替える */}
       {(isLoading || isExporting) && (
         <div className="fixed inset-0 bg-white/90 z-50 flex flex-col items-center justify-center backdrop-blur-sm">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
