@@ -377,7 +377,7 @@ export default function Home() {
     }
   };
 
-  // --- プロフェッショナル仕様 PPTXエクスポート機能 (ビルドエラー修正版) ---
+ // --- プロフェッショナル仕様 PPTXエクスポート機能 (チャート型エラー修正版) ---
   const handleExportPptx = async () => {
     if (!result) return;
     setIsLoading(true);
@@ -438,12 +438,12 @@ export default function Home() {
       });
 
       if (summaryDetails) {
-        // ★修正: r -> rectRadius, as any 追加
+        // as any で型エラー回避
         slide.addShape(pres.ShapeType.rect, { 
           x: 1.5, y: 3.2, w: 7, h: 1.8, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
           line: { color: "E2E8F0", width: 1 }, 
-          rectRadius: 0.05, // r: 5 を rectRadius (0-1) に変更
+          rectRadius: 0.05, 
           shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } 
         } as any); 
 
@@ -459,7 +459,7 @@ export default function Home() {
       slide.addText(`Generated on ${new Date().toLocaleDateString()}`, { x: 0.5, y: 5.3, w: 9, fontSize: 9, color: "94A3B8", align: "center" });
 
 
-      // --- 2. マトリクススライド (L字軸・修正版) ---
+      // --- 2. マトリクススライド (L字軸) ---
       slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
       slide.addText("不確実性マトリクス", { x: 0.4, y: 0.3, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
@@ -474,7 +474,6 @@ export default function Home() {
       // 軸線 (L字)
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY, w: 0, h: chartH, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY + chartH, w: chartW, h: 0, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
-      
       slide.addShape(pres.ShapeType.line, { x: centerX, y: chartY, w: 0, h: chartH, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: centerY, w: chartW, h: 0, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
 
@@ -485,7 +484,7 @@ export default function Home() {
         x: 0.3, y: chartY, w: 0.6, h: chartH, 
         fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true, 
         align: "center", valign: "middle", vert: "vert270" 
-      } as any); // vertプロパティなどでエラーが出ないよう念のため as any
+      } as any); 
       
       slide.addText(result.axisY.max, { x: chartX - 2.0, y: chartY - 0.15, w: 1.9, align: "right", ...valStyle });
       slide.addText(result.axisY.min, { x: chartX - 2.0, y: chartY + chartH - 0.15, w: 1.9, align: "right", ...valStyle });
@@ -506,7 +505,6 @@ export default function Home() {
         if(!s) return;
         const style = SCENARIO_STYLES[posId] || SCENARIO_STYLES.C;
 
-        // ★修正: r -> rectRadius, as any
         slide.addShape(pres.ShapeType.rect, { 
           x: x, y: y, w: cardW, h: cardH, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
@@ -515,7 +513,6 @@ export default function Home() {
           shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } 
         } as any);
 
-        // ★修正: r -> rectRadius, as any
         slide.addShape(pres.ShapeType.rect, { 
           x: x, y: y, w: cardW, h: 0.08, 
           fill: { color: style.color }, 
@@ -553,7 +550,6 @@ export default function Home() {
         p1.background = { color: LAYOUT.COLOR.BG };
 
         // ヘッダーカード
-        // ★修正: r -> rectRadius, as any
         p1.addShape(pres.ShapeType.rect, { 
           x: 0.5, y: 0.3, w: 9.0, h: 0.8, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
@@ -566,7 +562,6 @@ export default function Home() {
         p1.addText(`確率: ${s.probability}%`, { x: 8.0, y: 0.3, w: 1.3, h: 0.8, fontSize: 12, align: "center", color: style.color, bold: true, valign: "middle" });
 
         // メインコンテンツカード
-        // ★修正: r -> rectRadius, as any
         p1.addShape(pres.ShapeType.rect, { 
           x: 0.5, y: 1.3, w: 9.0, h: 4.0, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
@@ -619,7 +614,6 @@ export default function Home() {
         p2.background = { color: LAYOUT.COLOR.BG };
 
         // ヘッダー
-        // ★修正: r -> rectRadius, as any
         p2.addShape(pres.ShapeType.rect, { 
           x: 0.5, y: 0.3, w: 9.0, h: 0.5, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
@@ -628,7 +622,6 @@ export default function Home() {
         p2.addText(`${s.id} - Strategy & Analysis`, { x: 0.7, y: 0.3, h: 0.5, fontSize: 12, bold: true, color: LAYOUT.COLOR.SUB, valign: "middle" });
 
         // 左: チャートカード
-        // ★修正: r -> rectRadius, as any
         p2.addShape(pres.ShapeType.rect, { 
           x: 0.5, y: 1.0, w: 3.5, h: 4.2, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
@@ -642,6 +635,7 @@ export default function Home() {
           labels: ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"],
           values: s.allocation.map((a: any) => a.val)
         }];
+        // ★修正: legend オプションを含むオブジェクトに as any を追加
         p2.addChart(pres.ChartType.radar, chartData, { 
           x: 0.6, y: 1.5, w: 3.3, h: 3.3, 
           radarStyle: "marker", 
@@ -650,7 +644,7 @@ export default function Home() {
           valAxisHidden: true, legend: { show: false },
           catAxisLabelFontSize: 9,
           catAxisLabelColor: "64748B"
-        });
+        } as any);
 
         // 右: テキストカード群
         const rightX = 4.2;
@@ -658,7 +652,6 @@ export default function Home() {
         const boxH = 1.3;
 
         // 1. Business Insight
-        // ★修正: r -> rectRadius, as any
         p2.addShape(pres.ShapeType.rect, { 
           x: rightX, y: 1.0, w: rightW, h: boxH, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
@@ -672,7 +665,6 @@ export default function Home() {
         });
 
         // 2. Action
-        // ★修正: r -> rectRadius, as any
         p2.addShape(pres.ShapeType.rect, { 
           x: rightX, y: 1.0 + boxH + 0.15, w: rightW, h: boxH, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
@@ -686,7 +678,6 @@ export default function Home() {
         });
 
         // 3. Early Signs
-        // ★修正: r -> rectRadius, as any
         p2.addShape(pres.ShapeType.rect, { 
           x: rightX, y: 1.0 + (boxH + 0.15) * 2, w: rightW, h: boxH, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
