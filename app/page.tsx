@@ -377,7 +377,7 @@ export default function Home() {
     }
   };
 
-  // --- プロフェッショナル仕様 PPTXエクスポート機能 (音声埋め込み対応版) ---
+  // --- プロフェッショナル仕様 PPTXエクスポート機能 (ビルドエラー修正版) ---
   const handleExportPptx = async () => {
     if (!result) return;
     setIsLoading(true);
@@ -438,12 +438,15 @@ export default function Home() {
       });
 
       if (summaryDetails) {
+        // ★修正: r -> rectRadius, as any 追加
         slide.addShape(pres.ShapeType.rect, { 
           x: 1.5, y: 3.2, w: 7, h: 1.8, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
           line: { color: "E2E8F0", width: 1 }, 
-          r: 5, shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } 
-        });
+          rectRadius: 0.05, // r: 5 を rectRadius (0-1) に変更
+          shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } 
+        } as any); 
+
         slide.addText("前提条件 / コンテキスト", { 
           x: 1.7, y: 3.4, w: 6.6, fontSize: 10, color: LAYOUT.COLOR.SUB, bold: true 
         });
@@ -456,7 +459,7 @@ export default function Home() {
       slide.addText(`Generated on ${new Date().toLocaleDateString()}`, { x: 0.5, y: 5.3, w: 9, fontSize: 9, color: "94A3B8", align: "center" });
 
 
-      // --- 2. マトリクススライド (L字軸) ---
+      // --- 2. マトリクススライド (L字軸・修正版) ---
       slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
       slide.addText("不確実性マトリクス", { x: 0.4, y: 0.3, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
@@ -468,9 +471,10 @@ export default function Home() {
       const centerX = chartX + chartW / 2;
       const centerY = chartY + chartH / 2;
 
-      // 軸線
+      // 軸線 (L字)
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY, w: 0, h: chartH, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY + chartH, w: chartW, h: 0, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
+      
       slide.addShape(pres.ShapeType.line, { x: centerX, y: chartY, w: 0, h: chartH, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: centerY, w: chartW, h: 0, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
 
@@ -481,7 +485,8 @@ export default function Home() {
         x: 0.3, y: chartY, w: 0.6, h: chartH, 
         fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true, 
         align: "center", valign: "middle", vert: "vert270" 
-      });
+      } as any); // vertプロパティなどでエラーが出ないよう念のため as any
+      
       slide.addText(result.axisY.max, { x: chartX - 2.0, y: chartY - 0.15, w: 1.9, align: "right", ...valStyle });
       slide.addText(result.axisY.min, { x: chartX - 2.0, y: chartY + chartH - 0.15, w: 1.9, align: "right", ...valStyle });
 
@@ -501,14 +506,22 @@ export default function Home() {
         if(!s) return;
         const style = SCENARIO_STYLES[posId] || SCENARIO_STYLES.C;
 
+        // ★修正: r -> rectRadius, as any
         slide.addShape(pres.ShapeType.rect, { 
           x: x, y: y, w: cardW, h: cardH, 
           fill: { color: LAYOUT.COLOR.WHITE }, 
-          line: { color: "E2E8F0", width: 1 },
-          r: 5,
+          line: { color: "E2E8F0", width: 1 }, 
+          rectRadius: 0.05,
           shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } 
-        });
-        slide.addShape(pres.ShapeType.rect, { x: x, y: y, w: cardW, h: 0.08, fill: { color: style.color }, r: 2 });
+        } as any);
+
+        // ★修正: r -> rectRadius, as any
+        slide.addShape(pres.ShapeType.rect, { 
+          x: x, y: y, w: cardW, h: 0.08, 
+          fill: { color: style.color }, 
+          rectRadius: 0.02 
+        } as any);
+
         slide.addText(`Scenario ${posId}`, { x: x + 0.2, y: y + 0.3, w: 2.0, fontSize: 10, bold: true, color: style.color });
         slide.addText(`${s.probability}%`, { x: x + cardW - 1.2, y: y + 0.3, w: 1.0, align: "right", fontSize: 10, bold: true, color: LAYOUT.COLOR.SUB });
         slide.addText(s.title, { 
@@ -539,14 +552,27 @@ export default function Home() {
         const p1 = pres.addSlide();
         p1.background = { color: LAYOUT.COLOR.BG };
 
-        // ヘッダー
-        p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.8, fill: { color: LAYOUT.COLOR.WHITE }, r: 5, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } });
+        // ヘッダーカード
+        // ★修正: r -> rectRadius, as any
+        p1.addShape(pres.ShapeType.rect, { 
+          x: 0.5, y: 0.3, w: 9.0, h: 0.8, 
+          fill: { color: LAYOUT.COLOR.WHITE }, 
+          rectRadius: 0.05, 
+          shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } 
+        } as any);
         p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 0.15, h: 0.8, fill: { color: style.color } });
+        
         p1.addText(`${s.id}: ${s.title}`, { x: 0.8, y: 0.3, w: 7.0, h: 0.8, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI", valign: "middle" });
         p1.addText(`確率: ${s.probability}%`, { x: 8.0, y: 0.3, w: 1.3, h: 0.8, fontSize: 12, align: "center", color: style.color, bold: true, valign: "middle" });
 
         // メインコンテンツカード
-        p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.3, w: 9.0, h: 4.0, fill: { color: LAYOUT.COLOR.WHITE }, r: 5, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } });
+        // ★修正: r -> rectRadius, as any
+        p1.addShape(pres.ShapeType.rect, { 
+          x: 0.5, y: 1.3, w: 9.0, h: 4.0, 
+          fill: { color: LAYOUT.COLOR.WHITE }, 
+          rectRadius: 0.05, 
+          shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } 
+        } as any);
 
         // 画像
         if (s.imageUrl && s.imageUrl.startsWith("data:image")) {
@@ -565,7 +591,7 @@ export default function Home() {
         // ストーリー
         p1.addText("STORY", { x: 0.8, y: 3.3, fontSize: 10, bold: true, color: "94A3B8" });
         
-        // ★追加: 音声埋め込み (STORY見出しの横)
+        // 音声埋め込み
         const targetAudioUrl = s.audioUrl || audioCache[s.id];
         if (targetAudioUrl) {
           try {
@@ -593,11 +619,22 @@ export default function Home() {
         p2.background = { color: LAYOUT.COLOR.BG };
 
         // ヘッダー
-        p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, r: 5 });
+        // ★修正: r -> rectRadius, as any
+        p2.addShape(pres.ShapeType.rect, { 
+          x: 0.5, y: 0.3, w: 9.0, h: 0.5, 
+          fill: { color: LAYOUT.COLOR.WHITE }, 
+          rectRadius: 0.05 
+        } as any);
         p2.addText(`${s.id} - Strategy & Analysis`, { x: 0.7, y: 0.3, h: 0.5, fontSize: 12, bold: true, color: LAYOUT.COLOR.SUB, valign: "middle" });
 
         // 左: チャートカード
-        p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.0, w: 3.5, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, r: 5, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } });
+        // ★修正: r -> rectRadius, as any
+        p2.addShape(pres.ShapeType.rect, { 
+          x: 0.5, y: 1.0, w: 3.5, h: 4.2, 
+          fill: { color: LAYOUT.COLOR.WHITE }, 
+          rectRadius: 0.05, 
+          shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } 
+        } as any);
         p2.addText("リソース配分", { x: 0.5, y: 1.2, w: 3.5, align: "center", fontSize: 11, bold: true, color: LAYOUT.COLOR.MAIN });
         
         const chartData = [{
@@ -621,7 +658,13 @@ export default function Home() {
         const boxH = 1.3;
 
         // 1. Business Insight
-        p2.addShape(pres.ShapeType.rect, { x: rightX, y: 1.0, w: rightW, h: boxH, fill: { color: LAYOUT.COLOR.WHITE }, r: 5, shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } });
+        // ★修正: r -> rectRadius, as any
+        p2.addShape(pres.ShapeType.rect, { 
+          x: rightX, y: 1.0, w: rightW, h: boxH, 
+          fill: { color: LAYOUT.COLOR.WHITE }, 
+          rectRadius: 0.05, 
+          shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } 
+        } as any);
         p2.addText("BUSINESS INSIGHT", { x: rightX + 0.2, y: 1.1, fontSize: 9, bold: true, color: LAYOUT.COLOR.ACCENT });
         p2.addText(s.insight.breakthrough, { 
           x: rightX + 0.2, y: 1.3, w: rightW - 0.4, h: boxH - 0.4, 
@@ -629,7 +672,13 @@ export default function Home() {
         });
 
         // 2. Action
-        p2.addShape(pres.ShapeType.rect, { x: rightX, y: 1.0 + boxH + 0.15, w: rightW, h: boxH, fill: { color: LAYOUT.COLOR.WHITE }, r: 5, shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } });
+        // ★修正: r -> rectRadius, as any
+        p2.addShape(pres.ShapeType.rect, { 
+          x: rightX, y: 1.0 + boxH + 0.15, w: rightW, h: boxH, 
+          fill: { color: LAYOUT.COLOR.WHITE }, 
+          rectRadius: 0.05, 
+          shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } 
+        } as any);
         p2.addText("STRATEGIC ACTION", { x: rightX + 0.2, y: 1.0 + boxH + 0.25, fontSize: 9, bold: true, color: "059669" });
         p2.addText(s.actionAdvice, { 
           x: rightX + 0.2, y: 1.0 + boxH + 0.45, w: rightW - 0.4, h: boxH - 0.4, 
@@ -637,7 +686,13 @@ export default function Home() {
         });
 
         // 3. Early Signs
-        p2.addShape(pres.ShapeType.rect, { x: rightX, y: 1.0 + (boxH + 0.15) * 2, w: rightW, h: boxH, fill: { color: LAYOUT.COLOR.WHITE }, r: 5, shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } });
+        // ★修正: r -> rectRadius, as any
+        p2.addShape(pres.ShapeType.rect, { 
+          x: rightX, y: 1.0 + (boxH + 0.15) * 2, w: rightW, h: boxH, 
+          fill: { color: LAYOUT.COLOR.WHITE }, 
+          rectRadius: 0.05, 
+          shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } 
+        } as any);
         p2.addText("EARLY SIGNS (兆候)", { x: rightX + 0.2, y: 1.0 + (boxH + 0.15) * 2 + 0.1, fontSize: 9, bold: true, color: "D97706" });
         const signsList = s.earlySigns.map((es: string) => `• ${es}`).join("\n");
         p2.addText(signsList, { 
