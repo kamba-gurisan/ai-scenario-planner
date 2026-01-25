@@ -387,6 +387,7 @@ export default function Home() {
     }
   };
 
+ // --- 修正版: エラーハンドリングを強化 ---
   const handleGenerateImage = async (scenario: any) => {
     // ★制限チェック
     if (!checkLimit('images')) return;
@@ -400,8 +401,17 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: 'image', prompt }),
       });
+      
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      
+      // ★修正: エラーメッセージを判定して親切にする
+      if (data.error) {
+        if (data.error.includes("429") || data.error.includes("Quota")) {
+          throw new Error("⚠️ AIサービスの1日の利用上限に達しました。\n(Google API Limit)\n\nしばらく待つか、明日再度お試しください。");
+        } else {
+          throw new Error(data.error);
+        }
+      }
 
       // ★使用回数カウントアップ
       await incrementUsage('images');
@@ -412,7 +422,8 @@ export default function Home() {
         scenarios: prev.scenarios.map((s: any) => s.id === scenario.id ? { ...s, imageUrl: imageUrl } : s)
       }));
     } catch (e: any) {
-      alert("画像生成エラー: " + e.message);
+      // エラーをそのままアラート
+      alert(e.message);
     } finally {
       setImageLoading(scenario.id, false);
     }
