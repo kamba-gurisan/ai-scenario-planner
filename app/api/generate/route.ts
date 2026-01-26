@@ -104,26 +104,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ text: response.text() });
     }
 
-    // --- Mode 2: 画像生成 (Gemini 2.5 Flash Native) ---
+// --- Mode 2: 画像生成 (Imagen 4.0) ---
     if (mode === 'image') {
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.5-flash",
-        generationConfig: {
-          responseMimeType: "image/jpeg"
-        }
-      });
-
-      // プロンプトに "ar 16:9" が含まれているので、AIはそれを読み取って横長にします
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       
-      if (!response.candidates || !response.candidates[0].content.parts[0].inlineData) {
-        throw new Error("画像が生成されませんでした");
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instances: [{ prompt: prompt }],
+          parameters: { sampleCount: 1, aspectRatio: "16:9" }
+        })
+      });
+      
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("Imagen Error:", errText);
+        throw new Error(`Image Gen Failed: ${errText}`);
       }
-
-      const base64 = response.candidates[0].content.parts[0].inlineData.data;
+      
+      const data = await response.json();
+      // レスポンス構造の揺らぎに対応（bytesBase64Encodedの位置）
+      const base64 = data.predictions?.[0]?.bytesBase64Encoded || data.predictions?.[0]?.image?.bytesBase64Encoded;
       return NextResponse.json({ base64 });
     }
+    
     // --- Mode 3: 音声生成 ---
     if (mode === 'speech') {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
