@@ -9,39 +9,41 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (ハッピーエンド強化版) ---
+    // --- Mode 1: シナリオ生成 (インサイト論理的記述版) ---
     if (mode === 'scenario') {
-      let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、**ポジティブな未来を描くベストセラー作家**です。STEEP分析を用い、2030年の未来シナリオを構築します。
+      let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、同時にベストセラー作家でもあります。
+      これから作成するシナリオには、**「論理的なビジネス分析」と「情緒的な物語」の両方が求められます。**
+      以下のルールに従い、モードを明確に切り替えて出力してください。
       
       ## タスク
       1. 事業テーマに基づき、不確実性が高く影響度の大きい2つの変動要因（X軸、Y軸）を特定。
-         Min/Maxの状態は「4文字以内の短い単語」で表現。
       2. 4つの未来シナリオ(A, B, C, D)を作成。
-      3. 各シナリオの発生確率は、現在の「初期兆候(Early Signs)」に基づき、合計100%になるようメリハリをつけて配分（一律25%は禁止）。
+      3. 各シナリオの発生確率は、現在の「初期兆候」に基づきメリハリをつけて配分。
 
       ## ★重要: マトリクス定義 (厳守)
-      各シナリオの内容は、以下の軸の組み合わせと**完全に一致**させてください。
       - **X軸**: 左 = Min, 右 = Max
       - **Y軸**: 下 = Min, 上 = Max
+      - **Scenario A (左上)**: [X=Min, Y=Max]
+      - **Scenario B (右上)**: [X=Max, Y=Max]
+      - **Scenario C (左下)**: [X=Min, Y=Min]
+      - **Scenario D (右下)**: [X=Max, Y=Min]
 
-      【象限の定義】
-      - **Scenario A (左上)**: [X軸 = Min] かつ [Y軸 = Max] の世界
-      - **Scenario B (右上)**: [X軸 = Max] かつ [Y軸 = Max] の世界
-      - **Scenario C (左下)**: [X軸 = Min] かつ [Y軸 = Min] の世界
-      - **Scenario D (右下)**: [X軸 = Max] かつ [Y軸 = Min] の世界
+      ## 記述ルールの切り替え (最重要)
 
-      ## ストーリー作成のルール (最重要)
-      各シナリオの 'story' は、**「逆境をチャンスに変える、爽快なサクセスストーリー」**にしてください。重苦しい結末は禁止です。
-      
-      【必須要件】
-      1. **主人公の設定**: テーマに関連する職業の人物（名前付き）。
-      2. **トーン**: **明るく、希望に満ちたトーン**。たとえ「不況」や「混乱」のシナリオ（Min軸）であっても、主人公だけはその環境を利用して**ビジネスチャンス**を掴む物語にすること。
-      3. **構成（3段構成）**:
-         - **①ピンチ**: 環境変化により課題が発生する。
-         - **②転機**: 主人公が機転を利かせ、新技術や新サービスを導入する。
-         - **③成功**: 鮮やかに課題を解決し、笑顔や利益を得て終わる（ハッピーエンド）。
-      4. **★文字数制限: 日本語で450文字以内に収めること（厳守）。**
-         - 描写よりも「どう解決したか」のアクションを優先し、テンポよく書くこと。
+      ### 1. 【Story】フィールド: "情緒的・ドラマチック"
+      - ここは**「逆境をチャンスに変えるサクセスストーリー」**です。
+      - 特定の主人公（名前・職業あり）を設定し、小説のように感情移入できる文体で書いてください。
+      - 構成: 課題発生 → 機転/技術での解決 → ハッピーエンド。
+      - **文字数: 日本語で450文字以内（厳守）。**
+
+      ### 2. 【Insight】フィールド: "論理的・客観的" (修正箇所)
+      - ここは**「物語」ではありません。** 戦略コンサルタントとして、冷徹かつ客観的に分析してください。
+      - 主人公の名前やストーリーの要素は一切出さないでください。
+      - **文体**: ビジネスレポート調（「〜である」「〜が推奨される」）。断定形で簡潔に。
+      - **内容は具体的かつ戦略的に**:
+         - context: そのシナリオにおける市場環境・競合状況の客観的ファクト。
+         - issue: 企業が直面する構造的な経営課題。
+         - breakthrough: 収益化のための具体的なビジネスモデルや技術的解決策。
 
       ## 出力JSONフォーマット (厳守)
       {
@@ -53,15 +55,18 @@ export async function POST(request: Request) {
                   "id": "Scenario A", 
                   "title": "...", 
                   "headline": "...", 
-                  "insight": {"context":"...","issue":"...","breakthrough":"..."}, 
+                  "insight": {
+                    "context": "市場環境の分析...",
+                    "issue": "直面する課題...",
+                    "breakthrough": "具体的な解決策..."
+                  }, 
                   "actionAdvice": "...", 
-                  "story": "...", 
+                  "story": "主人公の物語...", 
                   "earlySigns": ["兆候1", "兆候2"], 
                   "imgPrompt": "Detailed prompt in English describing a cinematic shot of the protagonist (from the story) smiling confidently in a successful moment. Bright lighting, inspiring atmosphere. No text.",
                   "audioTone": "Speak in a positive, inspiring, and confident tone:", 
                   "probability": 40, 
                   "allocation": [
-                    // valは 1(低)〜5(高) の5段階評価
                     {"subject":"イノベーション","val":5}, 
                     {"subject":"マーケティング","val":3}, 
                     {"subject":"人材・組織","val":2}, 
