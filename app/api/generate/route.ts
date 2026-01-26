@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (ポートフォリオ分析コメント追加版) ---
+    // --- Mode 1: シナリオ生成 (ポートフォリオ分析・特徴フォーカス版) ---
     if (mode === 'scenario') {
       let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、同時に**希望を描くベストセラー作家**でもあります。
       これから作成するシナリオには、**「論理的なビジネス分析」と「情緒的な希望の物語」の両方が求められます。**
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       1. 事業テーマに基づき、不確実性が高く影響度の大きい2つの変動要因（X軸、Y軸）を特定。
       2. 4つの未来シナリオ(A, B, C, D)を作成。
       3. 各シナリオの発生確率は、現在の「初期兆候」に基づきメリハリをつけて配分。
-      4. **ポートフォリオ分析**: 4つのシナリオ全体のリソース配分傾向を分析し、解説文を作成。
+      4. **ポートフォリオ分析**: リソース配分の特徴を分析。
 
       ## ★重要: マトリクス定義 (厳守)
       - **X軸**: 左 = Min, 右 = Max
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
           "axisX": { "label": "...", "min": "...", "max": "..." },
           "axisY": { "label": "...", "min": "...", "max": "..." },
           "rationale": "...",
-          "portfolioAnalysis": "戦略ポートフォリオ（リソース配分）の全体傾向、あるいは各シナリオ間の顕著な違いについての戦略的考察。100文字程度の日本語で解説。",
+          "portfolioAnalysis": "戦略ポートフォリオ（リソース配分）の全体像から、**最も特徴的な点や顕著な偏り**を捉えて、100文字程度の日本語で鋭く解説してください。",
           "scenarios": [
               { 
                   "id": "Scenario A", 

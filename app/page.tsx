@@ -16,8 +16,8 @@ import PptxGenJS from "pptxgenjs";
 // =================================================================
 const SYSTEM_CONFIG = {
   APP_NAME: "AI Scenario Planner",
-  VERSION: "v0.1.2", // ← 更新時はここだけ変えれば全てに反映されます
-  COPYRIGHT: "© 2026 GURISAN. All Rights Reserved" // ← 全出力物の著作権表記
+  VERSION: "v0.1.3",
+  COPYRIGHT: "© 2026 GURISAN. All Rights Reserved"
 };
 
 // =================================================================
@@ -40,10 +40,10 @@ const db = getFirestore(app);
 // --- 💎 プラン定義と制限設定 ---
 const PLAN_LIMITS: any = {
   free: {
-    scenarios: 3, // 月間シナリオ生成回数
-    images: 5,    // 月間画像生成回数
-    audios: 5,    // 月間音声生成回数
-    pptx: false   // PPTX出力 (false = 不可)
+    scenarios: 3,
+    images: 5,
+    audios: 5,
+    pptx: false
   },
   pro: {
     scenarios: 100,
@@ -998,16 +998,8 @@ export default function Home() {
                 <h3 className="font-bold text-gray-700 mb-4 text-center">戦略ポートフォリオ比較</h3>
                 <div className="flex justify-center"><RadarChart scenarios={result.scenarios} /></div>
                 
-                {/* ▼▼▼ 追加: ポートフォリオ解説表示エリア ▼▼▼ */}
-                {result.portfolioAnalysis && (
-                  <div className="mb-4 bg-indigo-50/50 p-3 rounded border border-indigo-100">
-                    <span className="text-xs font-bold text-indigo-600 block mb-1">📊 PORTFOLIO ANALYSIS</span>
-                    <p className="text-xs text-gray-600 leading-relaxed">{result.portfolioAnalysis}</p>
-                  </div>
-                )}
-                {/* ▲▲▲ 追加終わり ▲▲▲ */}
-                
-                <div className="space-y-2">
+                {/* ▼▼▼ 凡例を上に移動しました ▼▼▼ */}
+                <div className="space-y-2 mb-4">
                   {result.scenarios.map((s:any) => (
                     <div key={s.id} className="flex items-center text-xs gap-2">
                       <span className={`w-3 h-3 rounded-full ${s.colorCode==='red'?'bg-red-400':s.colorCode==='yellow'?'bg-yellow-400':s.colorCode==='blue'?'bg-blue-400':'bg-gray-400'}`}></span>
@@ -1016,6 +1008,17 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
+                {/* ▲▲▲ 凡例ここまで ▲▲▲ */}
+
+                {/* ▼▼▼ ポートフォリオ解説を下へ移動 ▼▼▼ */}
+                {result.portfolioAnalysis && (
+                  <div className="bg-indigo-50/50 p-3 rounded border border-indigo-100">
+                    <span className="text-xs font-bold text-indigo-600 block mb-1">📊 PORTFOLIO ANALYSIS</span>
+                    <p className="text-xs text-gray-600 leading-relaxed">{result.portfolioAnalysis}</p>
+                  </div>
+                )}
+                {/* ▲▲▲ 解説ここまで ▲▲▲ */}
+
               </div>
             </div>
 
