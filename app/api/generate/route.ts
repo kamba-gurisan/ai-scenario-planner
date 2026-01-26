@@ -9,9 +9,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (軸ズレ防止 & サクセスストーリー版) ---
+    // --- Mode 1: シナリオ生成 (ハッピーエンド強化版) ---
     if (mode === 'scenario') {
-      let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、ベストセラーSF作家です。STEEP分析を用い、2030年の未来シナリオを構築します。
+      let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、**ポジティブな未来を描くベストセラー作家**です。STEEP分析を用い、2030年の未来シナリオを構築します。
       
       ## タスク
       1. 事業テーマに基づき、不確実性が高く影響度の大きい2つの変動要因（X軸、Y軸）を特定。
@@ -20,8 +20,7 @@ export async function POST(request: Request) {
       3. 各シナリオの発生確率は、現在の「初期兆候(Early Signs)」に基づき、合計100%になるようメリハリをつけて配分（一律25%は禁止）。
 
       ## ★重要: マトリクス定義 (厳守)
-      各シナリオの内容は、以下の軸の組み合わせと**完全に一致**させてください。矛盾は許されません。
-      
+      各シナリオの内容は、以下の軸の組み合わせと**完全に一致**させてください。
       - **X軸**: 左 = Min, 右 = Max
       - **Y軸**: 下 = Min, 上 = Max
 
@@ -31,15 +30,18 @@ export async function POST(request: Request) {
       - **Scenario C (左下)**: [X軸 = Min] かつ [Y軸 = Min] の世界
       - **Scenario D (右下)**: [X軸 = Max] かつ [Y軸 = Min] の世界
 
-      ## ストーリー作成のルール
-      各シナリオの 'story' は、単なる市場予測レポートではなく、**「その定義された世界（軸の状態）で生きる、ある一人の主人公（ペルソナ）」のショートストーリー**にしてください。
+      ## ストーリー作成のルール (最重要)
+      各シナリオの 'story' は、**「逆境をチャンスに変える、爽快なサクセスストーリー」**にしてください。重苦しい結末は禁止です。
       
       【必須要件】
-      1. **主人公の設定**: テーマに関連する職業の人物（名前付き）を設定。
-      2. **構成**: その象限特有の環境下での課題発生 → 機転/新技術での解決 → 成功（ハッピーエンド）。
-         ※例えば「Y軸=経済停滞」のシナリオなら、「不況下でも低コスト技術で成功する物語」にするなど、軸の状況と物語を整合させること。
-      3. **★文字数制限: 日本語で450文字以内に収めること（厳守）。**
-         - 描写は具体的かつ簡潔に。アクション重視でテンポよく。
+      1. **主人公の設定**: テーマに関連する職業の人物（名前付き）。
+      2. **トーン**: **明るく、希望に満ちたトーン**。たとえ「不況」や「混乱」のシナリオ（Min軸）であっても、主人公だけはその環境を利用して**ビジネスチャンス**を掴む物語にすること。
+      3. **構成（3段構成）**:
+         - **①ピンチ**: 環境変化により課題が発生する。
+         - **②転機**: 主人公が機転を利かせ、新技術や新サービスを導入する。
+         - **③成功**: 鮮やかに課題を解決し、笑顔や利益を得て終わる（ハッピーエンド）。
+      4. **★文字数制限: 日本語で450文字以内に収めること（厳守）。**
+         - 描写よりも「どう解決したか」のアクションを優先し、テンポよく書くこと。
 
       ## 出力JSONフォーマット (厳守)
       {
@@ -55,8 +57,8 @@ export async function POST(request: Request) {
                   "actionAdvice": "...", 
                   "story": "...", 
                   "earlySigns": ["兆候1", "兆候2"], 
-                  "imgPrompt": "Detailed prompt in English describing a cinematic shot of the protagonist (from the story) in a key scene. Describe lighting, environment, and mood. No text.",
-                  "audioTone": "Speak in a ... tone:", 
+                  "imgPrompt": "Detailed prompt in English describing a cinematic shot of the protagonist (from the story) smiling confidently in a successful moment. Bright lighting, inspiring atmosphere. No text.",
+                  "audioTone": "Speak in a positive, inspiring, and confident tone:", 
                   "probability": 40, 
                   "allocation": [
                     // valは 1(低)〜5(高) の5段階評価
@@ -72,12 +74,10 @@ export async function POST(request: Request) {
 
       if (axes) {
         systemInstructionText += `\n\n【重要】以下の軸設定を必ず使用してください。空欄(undefined/null/空文字)の項目については、テーマに合わせてあなたが最適値を補完してください。\n`;
-        
         const xLabel = axes.x.label ? `"${axes.x.label}"` : "AIが決定";
         const xMin = axes.x.min ? `"${axes.x.min}"` : "AIが決定";
         const xMax = axes.x.max ? `"${axes.x.max}"` : "AIが決定";
         systemInstructionText += `Thinking Axis X: Label=${xLabel}, Min=${xMin}, Max=${xMax}\n`;
-
         const yLabel = axes.y.label ? `"${axes.y.label}"` : "AIが決定";
         const yMin = axes.y.min ? `"${axes.y.min}"` : "AIが決定";
         const yMax = axes.y.max ? `"${axes.y.max}"` : "AIが決定";
