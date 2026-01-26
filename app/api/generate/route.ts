@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (インサイト論理的記述版) ---
+    // --- Mode 1: シナリオ生成 (EARLY SIGNS 3件固定版) ---
     if (mode === 'scenario') {
       let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、同時にベストセラー作家でもあります。
       これから作成するシナリオには、**「論理的なビジネス分析」と「情緒的な物語」の両方が求められます。**
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       - 構成: 課題発生 → 機転/技術での解決 → ハッピーエンド。
       - **文字数: 日本語で450文字以内（厳守）。**
 
-      ### 2. 【Insight】フィールド: "論理的・客観的" (修正箇所)
+      ### 2. 【Insight】フィールド: "論理的・客観的"
       - ここは**「物語」ではありません。** 戦略コンサルタントとして、冷徹かつ客観的に分析してください。
       - 主人公の名前やストーリーの要素は一切出さないでください。
       - **文体**: ビジネスレポート調（「〜である」「〜が推奨される」）。断定形で簡潔に。
@@ -44,6 +44,9 @@ export async function POST(request: Request) {
          - context: そのシナリオにおける市場環境・競合状況の客観的ファクト。
          - issue: 企業が直面する構造的な経営課題。
          - breakthrough: 収益化のための具体的なビジネスモデルや技術的解決策。
+      
+      ### 3. 【Early Signs】フィールド
+      - 現在すでに起きている、または起き始めている「未来の兆候」を**必ず3つ**挙げてください。
 
       ## 出力JSONフォーマット (厳守)
       {
@@ -62,7 +65,7 @@ export async function POST(request: Request) {
                   }, 
                   "actionAdvice": "...", 
                   "story": "主人公の物語...", 
-                  "earlySigns": ["兆候1", "兆候2"], 
+                  "earlySigns": ["兆候1", "兆候2", "兆候3"], 
                   "imgPrompt": "Detailed prompt in English describing a cinematic shot of the protagonist (from the story) smiling confidently in a successful moment. Bright lighting, inspiring atmosphere. No text.",
                   "audioTone": "Speak in a positive, inspiring, and confident tone:", 
                   "probability": 40, 
