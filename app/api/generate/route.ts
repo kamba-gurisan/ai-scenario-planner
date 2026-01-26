@@ -104,27 +104,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ text: response.text() });
     }
 
-    // --- Mode 2: 画像生成 (Imagen 4.0) ---
+    // --- Mode 2: 画像生成 (Gemini 2.5 Flash Native / 16:9設定追加) ---
     if (mode === 'image') {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instances: [{ prompt: prompt }],
-          parameters: { sampleCount: 1, aspectRatio: "16:9" }
-        })
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.5-flash",
+        generationConfig: {
+          responseMimeType: "image/jpeg",
+          // @ts-ignore // SDKの型定義が古い場合にエラーにならないよう無視させる
+          aspectRatio: "16:9" 
+        }
       });
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error("Imagen Error:", errText);
-        throw new Error(`Image Gen Failed: ${errText}`);
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      
+      if (!response.candidates || !response.candidates[0].content.parts[0].inlineData) {
+        throw new Error("画像が生成されませんでした");
       }
-      const data = await response.json();
-      const base64 = data.predictions?.[0]?.bytesBase64Encoded || data.predictions?.[0]?.image?.bytesBase64Encoded;
+
+      const base64 = response.candidates[0].content.parts[0].inlineData.data;
       return NextResponse.json({ base64 });
     }
-
     // --- Mode 3: 音声生成 ---
     if (mode === 'speech') {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
