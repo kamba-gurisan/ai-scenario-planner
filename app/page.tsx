@@ -12,6 +12,15 @@ import {
 import PptxGenJS from "pptxgenjs";
 
 // =================================================================
+// ⚙️ SYSTEM CONFIGURATION (バージョン管理 & 著作権表示の親設定)
+// =================================================================
+const SYSTEM_CONFIG = {
+  APP_NAME: "AI Scenario Planner",
+  VERSION: "v0.1.0b", // ← 更新時はここだけ変えれば全てに反映されます
+  COPYRIGHT: "© 2026 GURISAN. All Rights Reserved" // ← 全出力物の著作権表記
+};
+
+// =================================================================
 // ⚠️ 重要: ここをあなたの本物の Firebase Config に書き換えてください！
 // =================================================================
 const firebaseConfig = {
@@ -22,6 +31,7 @@ const firebaseConfig = {
   messagingSenderId: "439423354212",
   appId: "1:439423354212:web:62fc734dc452a03082e671"
 };
+
 
 // Firebase初期化
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -157,7 +167,6 @@ const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingSce
       scenario.colorCode === 'blue' ? 'border-blue-500 bg-blue-50/50' : 
       scenario.colorCode === 'yellow' ? 'border-yellow-400 bg-yellow-50/50' : 'border-gray-500 bg-gray-50/50'
     } mb-6`}>
-      {/* ヘッダー部分（タイトル・画像）は変更なし */}
       <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
         <div className="flex-1">
           <span className="text-xs font-bold uppercase tracking-wider opacity-60">{scenario.id} ({scenario.probability}%)</span>
@@ -181,10 +190,9 @@ const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingSce
         )}
       </div>
 
-      {/* ▼▼▼ ここを左右入れ替えました ▼▼▼ */}
       <div className="grid md:grid-cols-2 gap-6">
         
-        {/* 左側 (元右側): ビジネスインサイト・アクション・兆候 */}
+        {/* 左側: ビジネスインサイト・アクション・兆候 */}
         <div className="text-sm space-y-3">
           <div className="bg-indigo-50/50 p-3 rounded border border-indigo-100">
             <span className="font-bold text-xs text-indigo-600 block mb-1">💡 BUSINESS INSIGHT</span>
@@ -202,9 +210,9 @@ const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingSce
           </div>
         </div>
 
-        {/* 右側 (元左側): ストーリー・音声操作 */}
+        {/* 右側: ストーリー・音声操作 */}
         <div className="text-sm space-y-3">
-          <div className="bg-white/60 p-4 rounded-lg relative h-full"> {/* h-fullを追加して高さを合わせると綺麗です */}
+          <div className="bg-white/60 p-4 rounded-lg relative h-full"> 
             <div className="flex justify-between items-center mb-2">
               <p className="font-bold text-xs text-gray-500">STORY</p>
               <div className="flex gap-1 items-center">
@@ -226,8 +234,6 @@ const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingSce
         </div>
 
       </div>
-      {/* ▲▲▲ 入れ替え終了 ▲▲▲ */}
-
     </div>
   );
 };
@@ -243,7 +249,6 @@ export default function Home() {
   const [isExporting, setIsExporting] = useState(false);
 
   const [user, setUser] = useState<User | null>(null);
-  // ★追加: ユーザーのプラン・利用状況
   const [userData, setUserData] = useState<any>({ plan: 'free', usage: { scenarios: 0, images: 0, audios: 0 } });
   
   const [history, setHistory] = useState<any[]>([]);
@@ -267,18 +272,12 @@ export default function Home() {
     const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        // ユーザー情報をFirestoreに保存/取得
         const userRef = doc(db, "users", u.uid);
-        
-        // 初回ログイン時にドキュメントがなければ作成
-        // (merge: true なので既存データは消えない)
         await setDoc(userRef, {
           email: u.email,
           lastLogin: serverTimestamp(),
-          // planがなければfreeを設定
         }, { merge: true });
 
-        // リアルタイムで利用状況を監視
         const unsubscribeSnapshot = onSnapshot(userRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
@@ -326,7 +325,6 @@ export default function Home() {
     const plan = userData.plan || 'free';
     const limit = PLAN_LIMITS[plan][type];
     
-    // PPTXのようなブール値制限の場合
     if (typeof limit === 'boolean') {
       if (!limit) {
         alert("🔒 この機能はProプラン限定です。\nアップグレードして利用してください。");
@@ -335,7 +333,6 @@ export default function Home() {
       return true;
     }
 
-    // 回数制限の場合
     const current = userData.usage[type] || 0;
     if (current >= limit) {
       alert(`⚠️ ${plan.toUpperCase()}プランの上限に達しました。\n(今月: ${current}/${limit}回)\n\n制限解除にはProプランへのアップグレードが必要です。`);
@@ -354,7 +351,6 @@ export default function Home() {
 
   const generateScenarios = async () => {
     if (!theme) return;
-    // ★制限チェック
     if (!checkLimit('scenarios')) return;
 
     setIsLoading(true);
@@ -388,7 +384,6 @@ export default function Home() {
       setResult(finalResult);
 
       if (user) {
-        // ★使用回数カウントアップ
         await incrementUsage('scenarios');
         
         const docRef = await addDoc(collection(db, "scenarios"), {
@@ -397,6 +392,8 @@ export default function Home() {
           context: details,
           result: finalResult,
           createdAt: serverTimestamp(),
+          // バージョン情報もFirestoreに記録
+          appVersion: SYSTEM_CONFIG.VERSION
         });
         setCurrentDocId(docRef.id);
       }
@@ -407,14 +404,11 @@ export default function Home() {
     }
   };
 
- // --- 修正版: エラーハンドリングを強化 ---
   const handleGenerateImage = async (scenario: any) => {
-    // ★制限チェック
     if (!checkLimit('images')) return;
 
     try {
       setImageLoading(scenario.id, true);
-      // 新しいコード: STORY (物語の本文) を元に生成します
       const basePrompt = scenario.imgPrompt || scenario.story;
       const prompt = PROMPTS.IMAGE_GENERATION(basePrompt);
       const res = await fetch("/api/generate", {
@@ -425,7 +419,6 @@ export default function Home() {
       
       const data = await res.json();
       
-      // ★修正: エラーメッセージを判定して親切にする
       if (data.error) {
         if (data.error.includes("429") || data.error.includes("Quota")) {
           throw new Error("⚠️ AIサービスの1日の利用上限に達しました。\n(Google API Limit)\n\nしばらく待つか、明日再度お試しください。");
@@ -434,7 +427,6 @@ export default function Home() {
         }
       }
 
-      // ★使用回数カウントアップ
       await incrementUsage('images');
 
       const imageUrl = `data:image/png;base64,${data.base64}`;
@@ -443,7 +435,6 @@ export default function Home() {
         scenarios: prev.scenarios.map((s: any) => s.id === scenario.id ? { ...s, imageUrl: imageUrl } : s)
       }));
     } catch (e: any) {
-      // エラーをそのままアラート
       alert(e.message);
     } finally {
       setImageLoading(scenario.id, false);
@@ -470,15 +461,15 @@ export default function Home() {
       }
     }
 
-    // ★制限チェック
     if (!checkLimit('audios')) return;
 
     try {
       setAudioLoading(scenario.id, true);
-      // トーンの指示は活かしつつ、「速度は中くらいで一定に」という指示(constraint)を追加します
+      
       const textToSpeak = scenario.audioTone 
-     ? `${scenario.audioTone.replace(/:$/, '')}, but maintain a moderate and steady speaking pace: ${scenario.story}` 
-     : `Speak in a clear tone at a moderate and steady speaking pace: ${scenario.story}`;
+        ? `${scenario.audioTone.replace(/:$/, '')}, but maintain a moderate and steady speaking pace: ${scenario.story}` 
+        : `Speak in a clear tone at a moderate and steady speaking pace: ${scenario.story}`;
+
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -487,7 +478,6 @@ export default function Home() {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      // ★使用回数カウントアップ
       await incrementUsage('audios');
 
       const blob = pcmToWav(data.audioData);
@@ -511,11 +501,9 @@ export default function Home() {
     }
   };
 
-  // --- PPTXエクスポート機能 ---
+  // --- PPTXエクスポート機能 (バージョン反映版) ---
   const handleExportPptx = async () => {
-    // ★制限チェック (Proプランのみ)
     if (!checkLimit('pptx')) return;
-
     if (!result) return;
     setIsLoading(true);
     setIsExporting(true);
@@ -525,28 +513,26 @@ export default function Home() {
       
       // 共通レイアウト設定
       const LAYOUT = {
-        W: 10.0,
-        H: 5.625,
-        MARGIN: 0.4,
+        W: 10.0, H: 5.625, MARGIN: 0.4,
         COLOR: {
-          MAIN: "1E293B", // Slate-800
-          SUB: "64748B",  // Slate-500
-          ACCENT: "4F46E5", // Indigo-600
-          BG: "F8FAFC",   // 背景色
-          WHITE: "FFFFFF",
-          AXIS_LINE: "CBD5E1" // Slate-300
+          MAIN: "1E293B", SUB: "64748B", ACCENT: "4F46E5",
+          BG: "F8FAFC", WHITE: "FFFFFF", AXIS_LINE: "CBD5E1"
         }
       };
-
-      // シナリオ別テーマカラー定義
-      const SCENARIO_STYLES: any = {
-        A: { color: "EAB308", bg: "FEFCE8" }, // Yellow
-        B: { color: "EF4444", bg: "FEF2F2" }, // Red
-        C: { color: "6B7280", bg: "F9FAFB" }, // Gray
-        D: { color: "3B82F6", bg: "EFF6FF" }  // Blue
+      
+      // 著作権表示用の共通スタイル
+      const COPYRIGHT_STYLE = {
+        x: 0, y: 5.4, w: "100%", align: "right", 
+        fontSize: 8, color: "94A3B8", margin: 0.2
       };
 
-      // 0. AIによるコンテキスト要約の取得
+      const SCENARIO_STYLES: any = {
+        A: { color: "EAB308", bg: "FEFCE8" },
+        B: { color: "EF4444", bg: "FEF2F2" },
+        C: { color: "6B7280", bg: "F9FAFB" },
+        D: { color: "3B82F6", bg: "EFF6FF" } 
+      };
+
       let summaryDetails = details;
       if (details && details.length > 100) {
         try {
@@ -567,7 +553,7 @@ export default function Home() {
       slide.background = { color: LAYOUT.COLOR.BG };
       slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: "100%", h: 0.15, fill: { color: LAYOUT.COLOR.ACCENT } });
       
-      slide.addText("AI Scenario Planner Report", { 
+      slide.addText(SYSTEM_CONFIG.APP_NAME, { 
         x: 0.5, y: 1.5, w: 9, fontSize: 14, color: LAYOUT.COLOR.ACCENT, bold: true, align: "center", charSpacing: 3 
       });
       slide.addText(theme, { 
@@ -592,83 +578,57 @@ export default function Home() {
           lineSpacing: 18, shrinkText: true
         });
       }
-      slide.addText(`Generated on ${new Date().toLocaleDateString()}`, { x: 0.5, y: 5.3, w: 9, fontSize: 9, color: "94A3B8", align: "center" });
+      
+      // バージョンと作成日
+      slide.addText(`Generated on ${new Date().toLocaleDateString()} | Ver: ${SYSTEM_CONFIG.VERSION}`, { x: 0.5, y: 5.2, w: 9, fontSize: 9, color: "94A3B8", align: "center" });
+      // 著作権 (表紙)
+      slide.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE, align: "center", y: 5.4 } as any);
 
 
-      // --- 2. マトリクススライド (L字軸) ---
+      // --- 2. マトリクススライド ---
       slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
       slide.addText("不確実性マトリクス", { x: 0.4, y: 0.3, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
 
-      const chartX = 1.2;
-      const chartY = 1.0;
-      const chartW = 8.2;
-      const chartH = 4.0;
+      const chartX = 1.2, chartY = 1.0, chartW = 8.2, chartH = 4.0;
       const centerX = chartX + chartW / 2;
       const centerY = chartY + chartH / 2;
 
-      // 軸線
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY, w: 0, h: chartH, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY + chartH, w: chartW, h: 0, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
       slide.addShape(pres.ShapeType.line, { x: centerX, y: chartY, w: 0, h: chartH, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: centerY, w: chartW, h: 0, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
 
       const valStyle = { fontSize: 10, color: LAYOUT.COLOR.ACCENT, bold: true };
-
-      // Y軸ラベル
-      slide.addText(result.axisY.label, { 
-        x: 0.3, y: chartY, w: 0.6, h: chartH, 
-        fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true, 
-        align: "center", valign: "middle", vert: "vert270" 
-      } as any); 
       
+      slide.addText(result.axisY.label, { x: 0.3, y: chartY, w: 0.6, h: chartH, fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true, align: "center", valign: "middle", vert: "vert270" } as any); 
       slide.addText(result.axisY.max, { x: chartX - 2.0, y: chartY - 0.15, w: 1.9, align: "right", ...valStyle });
       slide.addText(result.axisY.min, { x: chartX - 2.0, y: chartY + chartH - 0.15, w: 1.9, align: "right", ...valStyle });
 
-      // X軸ラベル
       slide.addText(result.axisX.label, { x: centerX - 2.0, y: chartY + chartH + 0.4, w: 4.0, align: "center", fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true });
       slide.addText(result.axisX.min, { x: chartX, y: chartY + chartH + 0.1, w: 2.5, align: "left", ...valStyle });
       slide.addText(result.axisX.max, { x: chartX + chartW - 2.5, y: chartY + chartH + 0.1, w: 2.5, align: "right", ...valStyle });
 
-      // 4象限カード
-      const cardW = 3.9;
-      const cardH = 1.8;
-      const cardPaddingX = 0.15;
-      const cardPaddingY = 0.15;
-
+      const cardW = 3.9, cardH = 1.8, cardPaddingX = 0.15, cardPaddingY = 0.15;
       const drawCard = (posId: string, x: number, y: number) => {
         const s = result.scenarios.find((sc:any) => sc.id.includes(posId));
         if(!s) return;
         const style = SCENARIO_STYLES[posId] || SCENARIO_STYLES.C;
-
-        slide.addShape(pres.ShapeType.rect, { 
-          x: x, y: y, w: cardW, h: cardH, 
-          fill: { color: LAYOUT.COLOR.WHITE }, 
-          line: { color: "E2E8F0", width: 1 }, 
-          rectRadius: 0.05,
-          shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } 
-        } as any);
-        slide.addShape(pres.ShapeType.rect, { 
-          x: x, y: y, w: cardW, h: 0.08, 
-          fill: { color: style.color }, 
-          rectRadius: 0.02 
-        } as any);
+        slide.addShape(pres.ShapeType.rect, { x: x, y: y, w: cardW, h: cardH, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: 0.05, shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } } as any);
+        slide.addShape(pres.ShapeType.rect, { x: x, y: y, w: cardW, h: 0.08, fill: { color: style.color }, rectRadius: 0.02 } as any);
         slide.addText(`Scenario ${posId}`, { x: x + 0.2, y: y + 0.3, w: 2.0, fontSize: 10, bold: true, color: style.color });
         slide.addText(`${s.probability}%`, { x: x + cardW - 1.2, y: y + 0.3, w: 1.0, align: "right", fontSize: 10, bold: true, color: LAYOUT.COLOR.SUB });
-        slide.addText(s.title, { 
-          x: x + 0.2, y: y + 0.5, w: cardW - 0.4, h: 0.6, 
-          fontSize: 12, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true 
-        });
-        slide.addText(s.headline, { 
-          x: x + 0.2, y: y + 1.0, w: cardW - 0.4, h: 0.7, 
-          fontSize: 9, color: LAYOUT.COLOR.SUB, valign: "top", shrinkText: true 
-        });
+        slide.addText(s.title, { x: x + 0.2, y: y + 0.5, w: cardW - 0.4, h: 0.6, fontSize: 12, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true });
+        slide.addText(s.headline, { x: x + 0.2, y: y + 1.0, w: cardW - 0.4, h: 0.7, fontSize: 9, color: LAYOUT.COLOR.SUB, valign: "top", shrinkText: true });
       };
 
       drawCard("A", centerX - cardW - cardPaddingX, centerY - cardH - cardPaddingY);
       drawCard("B", centerX + cardPaddingX, centerY - cardH - cardPaddingY);
       drawCard("C", centerX - cardW - cardPaddingX, centerY + cardPaddingY);
       drawCard("D", centerX + cardPaddingX, centerY + cardPaddingY);
+
+      // 著作権 (マトリクス)
+      slide.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
 
 
       // --- 3. 各シナリオ詳細 (2ページ構成) ---
@@ -679,30 +639,17 @@ export default function Home() {
         else if (s.id.includes("D")) sid = "D";
         const style = SCENARIO_STYLES[sid];
 
-        // === Page 1: ビジュアル & ストーリー ===
+        // === Page 1 ===
         const p1 = pres.addSlide();
         p1.background = { color: LAYOUT.COLOR.BG };
-
-        // ヘッダー
-        p1.addShape(pres.ShapeType.rect, { 
-          x: 0.5, y: 0.3, w: 9.0, h: 0.8, 
-          fill: { color: LAYOUT.COLOR.WHITE }, 
-          rectRadius: 0.05, 
-          shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } 
-        } as any);
+        
+        p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.8, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 0.15, h: 0.8, fill: { color: style.color } });
         p1.addText(`${s.id}: ${s.title}`, { x: 0.8, y: 0.3, w: 7.0, h: 0.8, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI", valign: "middle" });
         p1.addText(`確率: ${s.probability}%`, { x: 8.0, y: 0.3, w: 1.3, h: 0.8, fontSize: 12, align: "center", color: style.color, bold: true, valign: "middle" });
 
-        // メインコンテンツカード
-        p1.addShape(pres.ShapeType.rect, { 
-          x: 0.5, y: 1.3, w: 9.0, h: 4.0, 
-          fill: { color: LAYOUT.COLOR.WHITE }, 
-          rectRadius: 0.05, 
-          shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } 
-        } as any);
+        p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.3, w: 9.0, h: 4.0, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
 
-        // 画像
         if (s.imageUrl && s.imageUrl.startsWith("data:image")) {
           p1.addImage({ data: s.imageUrl, x: 0.8, y: 1.6, w: 2.8, h: 1.58 }); 
         } else {
@@ -710,131 +657,62 @@ export default function Home() {
           p1.addText("No Image", { x: 0.8, y: 2.2, w: 2.8, align: "center", color: "94A3B8" });
         }
 
-        // ヘッドライン
-        p1.addText(s.headline, { 
-          x: 3.8, y: 1.6, w: 5.4, h: 1.5, 
-          fontSize: 16, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true 
-        });
-
-        // ストーリー
+        p1.addText(s.headline, { x: 3.8, y: 1.6, w: 5.4, h: 1.5, fontSize: 16, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true });
         p1.addText("STORY", { x: 0.8, y: 3.3, fontSize: 10, bold: true, color: "94A3B8" });
         
-        // 音声
         const targetAudioUrl = s.audioUrl || audioCache[s.id];
         if (targetAudioUrl) {
           try {
             const audioBase64 = await urlToBase64(targetAudioUrl);
-            p1.addMedia({ 
-              type: "audio", 
-              data: `data:audio/wav;base64,${audioBase64}`, 
-              x: 1.5, y: 3.25, w: 0.3, h: 0.3 
-            });
+            p1.addMedia({ type: "audio", data: `data:audio/wav;base64,${audioBase64}`, x: 1.5, y: 3.25, w: 0.3, h: 0.3 });
             p1.addText("🔊 音声を再生", { x: 1.8, y: 3.25, fontSize: 9, color: LAYOUT.COLOR.ACCENT });
-          } catch (e) {
-            console.error("Audio embed failed", e);
-          }
+          } catch (e) { console.error("Audio embed failed", e); }
         }
 
-        p1.addText(s.story, { 
-          x: 0.8, y: 3.5, w: 8.4, h: 1.6, 
-          fontSize: 11, color: "374151", align: "justify", valign: "top", 
-          shrinkText: true, lineSpacing: 15 
-        });
+        p1.addText(s.story, { x: 0.8, y: 3.5, w: 8.4, h: 1.6, fontSize: 11, color: "374151", align: "justify", valign: "top", shrinkText: true, lineSpacing: 15 });
+        
+        // 著作権 (P1)
+        p1.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
 
 
-        // === Page 2: 戦略分析 (Strategy) ===
+        // === Page 2 ===
         const p2 = pres.addSlide();
         p2.background = { color: LAYOUT.COLOR.BG };
 
-        // ヘッダー
-        p2.addShape(pres.ShapeType.rect, { 
-          x: 0.5, y: 0.3, w: 9.0, h: 0.5, 
-          fill: { color: LAYOUT.COLOR.WHITE }, 
-          rectRadius: 0.05 
-        } as any);
+        p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05 } as any);
         p2.addText(`${s.id} - Strategy & Analysis`, { x: 0.7, y: 0.3, h: 0.5, fontSize: 12, bold: true, color: LAYOUT.COLOR.SUB, valign: "middle" });
 
-        // 左: チャートカード
-        p2.addShape(pres.ShapeType.rect, { 
-          x: 0.5, y: 1.0, w: 3.5, h: 4.2, 
-          fill: { color: LAYOUT.COLOR.WHITE }, 
-          rectRadius: 0.05, 
-          shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } 
-        } as any);
+        p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.0, w: 3.5, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         p2.addText("リソース配分", { x: 0.5, y: 1.2, w: 3.5, align: "center", fontSize: 11, bold: true, color: LAYOUT.COLOR.MAIN });
         
-        const chartData = [{
-          name: s.title,
-          labels: ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"],
-          values: s.allocation.map((a: any) => a.val)
-        }];
-        p2.addChart(pres.ChartType.radar, chartData, { 
-          x: 0.6, y: 1.5, w: 3.3, h: 3.3, 
-          radarStyle: "marker", 
-          chartColors: [style.color], 
-          chartColorsOpacity: 40,
-          valAxisHidden: true, legend: { show: false },
-          catAxisLabelFontSize: 9,
-          catAxisLabelColor: "64748B"
-        } as any);
+        const chartData = [{ name: s.title, labels: ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"], values: s.allocation.map((a: any) => a.val) }];
+        p2.addChart(pres.ChartType.radar, chartData, { x: 0.6, y: 1.5, w: 3.3, h: 3.3, radarStyle: "marker", chartColors: [style.color], chartColorsOpacity: 40, valAxisHidden: true, legend: { show: false }, catAxisLabelFontSize: 9, catAxisLabelColor: "64748B" } as any);
 
-        // 右: テキストカード群
-        const rightX = 4.2;
-        const rightW = 5.3;
-        const boxH = 1.3;
+        const rightX = 4.2, rightW = 5.3, boxH = 1.3;
 
-        // 1. Business Insight
-        p2.addShape(pres.ShapeType.rect, { 
-          x: rightX, y: 1.0, w: rightW, h: boxH, 
-          fill: { color: LAYOUT.COLOR.WHITE }, 
-          rectRadius: 0.05, 
-          shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } 
-        } as any);
+        p2.addShape(pres.ShapeType.rect, { x: rightX, y: 1.0, w: rightW, h: boxH, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } } as any);
         p2.addText("BUSINESS INSIGHT", { x: rightX + 0.2, y: 1.1, fontSize: 9, bold: true, color: LAYOUT.COLOR.ACCENT });
-        p2.addText(s.insight.breakthrough, { 
-          x: rightX + 0.2, y: 1.3, w: rightW - 0.4, h: boxH - 0.4, 
-          fontSize: 10, color: "1F2937", valign: "top", shrinkText: true 
-        });
+        p2.addText(s.insight.breakthrough, { x: rightX + 0.2, y: 1.3, w: rightW - 0.4, h: boxH - 0.4, fontSize: 10, color: "1F2937", valign: "top", shrinkText: true });
 
-        // 2. Action
-        p2.addShape(pres.ShapeType.rect, { 
-          x: rightX, y: 1.0 + boxH + 0.15, w: rightW, h: boxH, 
-          fill: { color: LAYOUT.COLOR.WHITE }, 
-          rectRadius: 0.05, 
-          shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } 
-        } as any);
+        p2.addShape(pres.ShapeType.rect, { x: rightX, y: 1.0 + boxH + 0.15, w: rightW, h: boxH, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } } as any);
         p2.addText("STRATEGIC ACTION", { x: rightX + 0.2, y: 1.0 + boxH + 0.25, fontSize: 9, bold: true, color: "059669" });
-        p2.addText(s.actionAdvice, { 
-          x: rightX + 0.2, y: 1.0 + boxH + 0.45, w: rightW - 0.4, h: boxH - 0.4, 
-          fontSize: 10, color: "1F2937", valign: "top", shrinkText: true 
-        });
+        p2.addText(s.actionAdvice, { x: rightX + 0.2, y: 1.0 + boxH + 0.45, w: rightW - 0.4, h: boxH - 0.4, fontSize: 10, color: "1F2937", valign: "top", shrinkText: true });
 
-        // 3. Early Signs
-        p2.addShape(pres.ShapeType.rect, { 
-          x: rightX, y: 1.0 + (boxH + 0.15) * 2, w: rightW, h: boxH, 
-          fill: { color: LAYOUT.COLOR.WHITE }, 
-          rectRadius: 0.05, 
-          shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } 
-        } as any);
+        p2.addShape(pres.ShapeType.rect, { x: rightX, y: 1.0 + (boxH + 0.15) * 2, w: rightW, h: boxH, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } } as any);
         p2.addText("EARLY SIGNS (兆候)", { x: rightX + 0.2, y: 1.0 + (boxH + 0.15) * 2 + 0.1, fontSize: 9, bold: true, color: "D97706" });
         const signsList = s.earlySigns.map((es: string) => `• ${es}`).join("\n");
-        p2.addText(signsList, { 
-          x: rightX + 0.2, y: 1.0 + (boxH + 0.15) * 2 + 0.3, w: rightW - 0.4, h: boxH - 0.4, 
-          fontSize: 10, color: "4B5563", valign: "top", shrinkText: true 
-        });
+        p2.addText(signsList, { x: rightX + 0.2, y: 1.0 + (boxH + 0.15) * 2 + 0.3, w: rightW - 0.4, h: boxH - 0.4, fontSize: 10, color: "4B5563", valign: "top", shrinkText: true });
+
+        // 著作権 (P2)
+        p2.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
       }
 
       pres.writeFile({ fileName: `${theme.replace(/\s+/g, '_')}_ScenarioReport.pptx` });
 
-    } catch (e) {
-      console.error(e);
-      alert("PPTX生成中にエラーが発生しました");
-    } finally {
-      setIsExporting(false);
-      setIsLoading(false);
-    }
+    } catch (e) { console.error(e); alert("PPTX生成中にエラーが発生しました"); } finally { setIsExporting(false); setIsLoading(false); }
   };
 
+  // --- 保存・読み込み機能 (バージョンメタデータ対応) ---
   const handleSaveProject = async () => {
     if (!result) return;
     try {
@@ -852,10 +730,14 @@ export default function Home() {
       }));
 
       const saveData = {
+        meta: {
+          appVersion: SYSTEM_CONFIG.VERSION, // バージョン保存
+          copyright: SYSTEM_CONFIG.COPYRIGHT,
+          savedAt: new Date().toISOString()
+        },
         theme,
         details,
         result: { ...result, scenarios: scenariosToSave },
-        timestamp: new Date().toISOString(),
         customAxes: customAxes
       };
 
@@ -864,10 +746,7 @@ export default function Home() {
       link.href = URL.createObjectURL(blob);
       link.download = `${theme.replace(/\s+/g, '_')}_project.json`;
       link.click();
-    } catch (e) {
-      console.error(e);
-      alert("保存に失敗しました");
-    }
+    } catch (e) { console.error(e); alert("保存に失敗しました"); }
   };
 
   const handleLoadProject = (e: any) => {
@@ -877,6 +756,10 @@ export default function Home() {
     reader.onload = (event: any) => {
       try {
         const data = JSON.parse(event.target.result);
+        
+        // 旧データ互換性チェック（必要であればここで警告など出す）
+        // console.log("Loaded File Version:", data.meta?.appVersion);
+
         setTheme(data.theme);
         setDetails(data.details);
         
@@ -894,9 +777,7 @@ export default function Home() {
         setResult({ ...data.result, scenarios: restoredScenarios });
         setAudioCache({});
         setIsDetailsExpanded(false);
-      } catch (err) {
-        alert("ファイルの読み込みに失敗しました");
-      }
+      } catch (err) { alert("ファイルの読み込みに失敗しました"); }
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -908,16 +789,8 @@ export default function Home() {
     
     if (item.result?.axisX && item.result?.axisY) {
       setCustomAxes({
-        x: { 
-          label: item.result.axisX.label || "", 
-          min: item.result.axisX.min || "", 
-          max: item.result.axisX.max || "" 
-        },
-        y: { 
-          label: item.result.axisY.label || "", 
-          min: item.result.axisY.min || "", 
-          max: item.result.axisY.max || "" 
-        }
+        x: { label: item.result.axisX.label || "", min: item.result.axisX.min || "", max: item.result.axisX.max || "" },
+        y: { label: item.result.axisY.label || "", min: item.result.axisY.min || "", max: item.result.axisY.max || "" }
       });
       setIsCustomAxesMode(true);
     }
@@ -939,7 +812,9 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 h-16 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🧭</span>
-            <h1 className="font-bold text-xl tracking-tight text-gray-800">AI Scenario Planner <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full font-normal">Pro</span></h1>
+            <h1 className="font-bold text-xl tracking-tight text-gray-800">
+              {SYSTEM_CONFIG.APP_NAME} <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full font-normal">{SYSTEM_CONFIG.VERSION}</span>
+            </h1>
           </div>
           <div className="flex items-center gap-3">
             {result && (
@@ -948,7 +823,6 @@ export default function Home() {
                   <Icons.Plus /> 新規
                 </button>
 
-                {/* ★変更: Pro/Freeで出し分け */}
                 {userData.plan === 'pro' ? (
                   <button onClick={handleExportPptx} className="flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-2 rounded-lg transition" title="PowerPointで書き出し">
                     <Icons.Presentation /> PPTX
@@ -972,7 +846,6 @@ export default function Home() {
 
             {user ? (
               <div className="flex items-center gap-4">
-                {/* ★変更: プラン情報表示 */}
                 <div className="text-right hidden sm:block">
                   <div className={`text-xs font-bold ${userData.plan==='pro' ? 'text-indigo-600':'text-gray-500'}`}>
                     {userData.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
@@ -1170,7 +1043,11 @@ export default function Home() {
           </div>
         )}
       </main>
-      <footer className="w-full py-8 text-center text-gray-400 text-sm font-medium">© 2026 GURISAN. All Rights Reserved</footer>
+      
+      {/* Footer: 著作権表示 (定数利用) */}
+      <footer className="w-full py-8 text-center text-gray-400 text-sm font-medium">
+        {SYSTEM_CONFIG.COPYRIGHT}
+      </footer>
     </div>
   );
 }
