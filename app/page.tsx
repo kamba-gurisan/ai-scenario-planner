@@ -455,7 +455,10 @@ export default function Home() {
 
     try {
       setAudioLoading(scenario.id, true);
-      const textToSpeak = scenario.audioTone ? `${scenario.audioTone} ${scenario.story}` : scenario.story;
+      // トーンの指示は活かしつつ、「速度は中くらいで一定に」という指示(constraint)を追加します
+      const textToSpeak = scenario.audioTone 
+     ? `${scenario.audioTone.replace(/:$/, '')}, but maintain a moderate and steady speaking pace: ${scenario.story}` 
+     : `Speak in a clear tone at a moderate and steady speaking pace: ${scenario.story}`;
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
