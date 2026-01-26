@@ -9,15 +9,21 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 ---
+    // --- Mode 1: シナリオ生成 (ペルソナ & サクセスストーリー版) ---
     if (mode === 'scenario') {
-      let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、SF作家です。STEEP分析を用い、2030年の未来シナリオを構築します。
+      let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、ベストセラーSF作家です。STEEP分析を用い、2030年の未来シナリオを構築します。
       
       ## タスク
       1. 事業テーマに基づき、不確実性が高く影響度の大きい2つの変動要因（X軸、Y軸）を特定。
          Min/Maxの状態は「4文字以内の短い単語」で表現。
       2. 4つの未来シナリオ(A:左上, B:右上, C:左下, D:右下)を作成。
       3. 各シナリオの発生確率は、現在の「初期兆候(Early Signs)」に基づき、合計100%になるようメリハリをつけて配分（一律25%は禁止）。
+
+      ## ストーリー作成のルール (重要)
+      各シナリオの 'story' は、単なる市場予測レポートではなく、**「その世界で生きる、ある一人の主人公（ペルソナ）」の物語**にしてください。
+      - **主人公の設定**: テーマに関連する職業（例: 保険調査員、自動運転管理者、介護ロボット技師など）の人物を設定し、名前をつけてください。
+      - **サクセスストーリー**: 主人公がそのシナリオ特有の過酷な課題やトラブルに直面するが、機転・新技術・新しいサービスを活用してそれを乗り越え、成功する（または希望を見出す）結末にしてください。
+      - **文体**: 感情移入できる、小説のようなドラマチックな文体。
 
       ## 出力JSONフォーマット (厳守)
       {
@@ -33,7 +39,7 @@ export async function POST(request: Request) {
                   "actionAdvice": "...", 
                   "story": "...", 
                   "earlySigns": ["兆候1", "兆候2"], 
-                  "imgPrompt": "Detailed prompt...",
+                  "imgPrompt": "Detailed prompt in English describing a cinematic shot of the protagonist (from the story) in a key scene. Describe lighting, environment, and mood. No text.",
                   "audioTone": "Speak in a ... tone:", 
                   "probability": 40, 
                   "allocation": [
@@ -48,6 +54,7 @@ export async function POST(request: Request) {
           ]
       }`;
 
+      // 手動軸設定がある場合の処理
       if (axes) {
         systemInstructionText += `\n\n【重要】以下の軸設定を必ず使用してください。空欄(undefined/null/空文字)の項目については、テーマに合わせてあなたが最適値を補完してください。\n`;
         
@@ -76,7 +83,9 @@ export async function POST(request: Request) {
 
     // --- Mode 2: 画像生成 ---
     if (mode === 'image') {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+      // Imagen 4.0 または 3.0 を使用
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`;
+      
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,7 +94,13 @@ export async function POST(request: Request) {
           parameters: { sampleCount: 1, aspectRatio: "16:9" }
         })
       });
-      if (!response.ok) throw new Error(await response.text());
+      
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("Imagen Error:", errText);
+        throw new Error(`Image Gen Failed: ${errText}`);
+      }
+      
       const data = await response.json();
       const base64 = data.predictions?.[0]?.bytesBase64Encoded || data.predictions?.[0]?.image?.bytesBase64Encoded;
       return NextResponse.json({ base64 });
