@@ -9,10 +9,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (EARLY SIGNS 3件固定版) ---
+    // --- Mode 1: シナリオ生成 (希望の結末・厳守版) ---
     if (mode === 'scenario') {
-      let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、同時にベストセラー作家でもあります。
-      これから作成するシナリオには、**「論理的なビジネス分析」と「情緒的な物語」の両方が求められます。**
+      let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、同時に**希望を描くベストセラー作家**でもあります。
+      これから作成するシナリオには、**「論理的なビジネス分析」と「情緒的な希望の物語」の両方が求められます。**
       以下のルールに従い、モードを明確に切り替えて出力してください。
       
       ## タスク
@@ -30,10 +30,11 @@ export async function POST(request: Request) {
 
       ## 記述ルールの切り替え (最重要)
 
-      ### 1. 【Story】フィールド: "情緒的・ドラマチック"
-      - ここは**「逆境をチャンスに変えるサクセスストーリー」**です。
-      - 特定の主人公（名前・職業あり）を設定し、小説のように感情移入できる文体で書いてください。
-      - 構成: 課題発生 → 機転/技術での解決 → ハッピーエンド。
+      ### 1. 【Story】フィールド: "希望と人間賛歌の物語"
+      - **絶対ルール**: 設定がいかに過酷な状況（Min/Min）であっても、**最後は必ず「希望」「救い」「笑顔」で終わらせてください。**
+      - 重苦しい結末、バッドエンドは一切禁止です。
+      - 主人公（名前・職業あり）が、その環境下で懸命に生き、知恵とテクノロジーで未来を切り開く**「人間賛歌」**のトーンにすること。
+      - 読んだ後に「未来は変えられる」と勇気が湧くような内容にしてください。
       - **文字数: 日本語で450文字以内（厳守）。**
 
       ### 2. 【Insight】フィールド: "論理的・客観的"
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ text: response.text() });
     }
 
-// --- Mode 2: 画像生成 (Imagen 4.0) ---
+    // --- Mode 2: 画像生成 (Imagen 4.0) ---
     if (mode === 'image') {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       
@@ -124,11 +125,10 @@ export async function POST(request: Request) {
       }
       
       const data = await response.json();
-      // レスポンス構造の揺らぎに対応（bytesBase64Encodedの位置）
       const base64 = data.predictions?.[0]?.bytesBase64Encoded || data.predictions?.[0]?.image?.bytesBase64Encoded;
       return NextResponse.json({ base64 });
     }
-    
+
     // --- Mode 3: 音声生成 ---
     if (mode === 'speech') {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
