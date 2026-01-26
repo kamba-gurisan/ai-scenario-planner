@@ -84,8 +84,9 @@ export async function POST(request: Request) {
     // --- Mode 2: 画像生成 ---
     if (mode === 'image') {
       // Imagen 4.0 または 3.0 を使用
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`;
-      
+       // ✅ 4.0 に変更します
+const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
