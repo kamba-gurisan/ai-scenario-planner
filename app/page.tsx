@@ -16,7 +16,7 @@ import PptxGenJS from "pptxgenjs";
 // =================================================================
 const SYSTEM_CONFIG = {
   APP_NAME: "AI Scenario Planner",
-  VERSION: "v.0.1.1", // ← 更新時はここだけ変えれば全てに反映されます
+  VERSION: "v0.1.2", // ← 更新時はここだけ変えれば全てに反映されます
   COPYRIGHT: "© 2026 GURISAN. All Rights Reserved" // ← 全出力物の著作権表記
 };
 
@@ -31,7 +31,6 @@ const firebaseConfig = {
   messagingSenderId: "439423354212",
   appId: "1:439423354212:web:62fc734dc452a03082e671"
 };
-
 
 // Firebase初期化
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -392,7 +391,6 @@ export default function Home() {
           context: details,
           result: finalResult,
           createdAt: serverTimestamp(),
-          // バージョン情報もFirestoreに記録
           appVersion: SYSTEM_CONFIG.VERSION
         });
         setCurrentDocId(docRef.id);
@@ -501,7 +499,7 @@ export default function Home() {
     }
   };
 
-  // --- PPTXエクスポート機能 (バージョン反映版) ---
+  // --- PPTXエクスポート機能 ---
   const handleExportPptx = async () => {
     if (!checkLimit('pptx')) return;
     if (!result) return;
@@ -520,7 +518,6 @@ export default function Home() {
         }
       };
       
-      // 著作権表示用の共通スタイル
       const COPYRIGHT_STYLE = {
         x: 0, y: 5.4, w: "100%", align: "right", 
         fontSize: 8, color: "94A3B8", margin: 0.2
@@ -548,7 +545,7 @@ export default function Home() {
         }
       }
 
-      // --- 1. 表紙スライド (Cover) ---
+      // --- 1. 表紙スライド ---
       let slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
       slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: "100%", h: 0.15, fill: { color: LAYOUT.COLOR.ACCENT } });
@@ -579,9 +576,7 @@ export default function Home() {
         });
       }
       
-      // バージョンと作成日
       slide.addText(`Generated on ${new Date().toLocaleDateString()} | Ver: ${SYSTEM_CONFIG.VERSION}`, { x: 0.5, y: 5.2, w: 9, fontSize: 9, color: "94A3B8", align: "center" });
-      // 著作権 (表紙)
       slide.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE, align: "center", y: 5.4 } as any);
 
 
@@ -627,11 +622,10 @@ export default function Home() {
       drawCard("C", centerX - cardW - cardPaddingX, centerY + cardPaddingY);
       drawCard("D", centerX + cardPaddingX, centerY + cardPaddingY);
 
-      // 著作権 (マトリクス)
       slide.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
 
 
-      // --- 3. 各シナリオ詳細 (2ページ構成) ---
+      // --- 3. 各シナリオ詳細 ---
       for (const s of result.scenarios) {
         let sid = "C";
         if (s.id.includes("A")) sid = "A";
@@ -670,8 +664,6 @@ export default function Home() {
         }
 
         p1.addText(s.story, { x: 0.8, y: 3.5, w: 8.4, h: 1.6, fontSize: 11, color: "374151", align: "justify", valign: "top", shrinkText: true, lineSpacing: 15 });
-        
-        // 著作権 (P1)
         p1.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
 
 
@@ -703,7 +695,6 @@ export default function Home() {
         const signsList = s.earlySigns.map((es: string) => `• ${es}`).join("\n");
         p2.addText(signsList, { x: rightX + 0.2, y: 1.0 + (boxH + 0.15) * 2 + 0.3, w: rightW - 0.4, h: boxH - 0.4, fontSize: 10, color: "4B5563", valign: "top", shrinkText: true });
 
-        // 著作権 (P2)
         p2.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
       }
 
@@ -712,7 +703,6 @@ export default function Home() {
     } catch (e) { console.error(e); alert("PPTX生成中にエラーが発生しました"); } finally { setIsExporting(false); setIsLoading(false); }
   };
 
-  // --- 保存・読み込み機能 (バージョンメタデータ対応) ---
   const handleSaveProject = async () => {
     if (!result) return;
     try {
@@ -731,7 +721,7 @@ export default function Home() {
 
       const saveData = {
         meta: {
-          appVersion: SYSTEM_CONFIG.VERSION, // バージョン保存
+          appVersion: SYSTEM_CONFIG.VERSION,
           copyright: SYSTEM_CONFIG.COPYRIGHT,
           savedAt: new Date().toISOString()
         },
@@ -756,10 +746,6 @@ export default function Home() {
     reader.onload = (event: any) => {
       try {
         const data = JSON.parse(event.target.result);
-        
-        // 旧データ互換性チェック（必要であればここで警告など出す）
-        // console.log("Loaded File Version:", data.meta?.appVersion);
-
         setTheme(data.theme);
         setDetails(data.details);
         
@@ -1011,7 +997,17 @@ export default function Home() {
               <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm flex flex-col lg:col-span-1 border border-white/60">
                 <h3 className="font-bold text-gray-700 mb-4 text-center">戦略ポートフォリオ比較</h3>
                 <div className="flex justify-center"><RadarChart scenarios={result.scenarios} /></div>
-                <div className="mt-4 space-y-2">
+                
+                {/* ▼▼▼ 追加: ポートフォリオ解説表示エリア ▼▼▼ */}
+                {result.portfolioAnalysis && (
+                  <div className="mb-4 bg-indigo-50/50 p-3 rounded border border-indigo-100">
+                    <span className="text-xs font-bold text-indigo-600 block mb-1">📊 PORTFOLIO ANALYSIS</span>
+                    <p className="text-xs text-gray-600 leading-relaxed">{result.portfolioAnalysis}</p>
+                  </div>
+                )}
+                {/* ▲▲▲ 追加終わり ▲▲▲ */}
+                
+                <div className="space-y-2">
                   {result.scenarios.map((s:any) => (
                     <div key={s.id} className="flex items-center text-xs gap-2">
                       <span className={`w-3 h-3 rounded-full ${s.colorCode==='red'?'bg-red-400':s.colorCode==='yellow'?'bg-yellow-400':s.colorCode==='blue'?'bg-blue-400':'bg-gray-400'}`}></span>

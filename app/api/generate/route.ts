@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (カタカナ名・氏or名のみ版) ---
+    // --- Mode 1: シナリオ生成 (ポートフォリオ分析コメント追加版) ---
     if (mode === 'scenario') {
       let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、同時に**希望を描くベストセラー作家**でもあります。
       これから作成するシナリオには、**「論理的なビジネス分析」と「情緒的な希望の物語」の両方が求められます。**
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
       1. 事業テーマに基づき、不確実性が高く影響度の大きい2つの変動要因（X軸、Y軸）を特定。
       2. 4つの未来シナリオ(A, B, C, D)を作成。
       3. 各シナリオの発生確率は、現在の「初期兆候」に基づきメリハリをつけて配分。
+      4. **ポートフォリオ分析**: 4つのシナリオ全体のリソース配分傾向を分析し、解説文を作成。
 
       ## ★重要: マトリクス定義 (厳守)
       - **X軸**: 左 = Min, 右 = Max
@@ -34,15 +35,14 @@ export async function POST(request: Request) {
       - **絶対ルール**: 設定がいかに過酷な状況（Min/Min）であっても、**最後は必ず「希望」「救い」「笑顔」で終わらせてください。**
       - 重苦しい結末、バッドエンドは一切禁止です。
       - **主人公の設定**: テーマに関連する職業の人物を設定。
-        - **★名前のルール**: **「カタカナで氏または名のみ」**（例：タナカ、ケンジ、エミ）にすること。フルネームや漢字表記は禁止。
+        - **★名前のルール**: **「カタカナで氏または名のみ」**（例：タナカ、ケンジ）にすること。フルネーム禁止。
       - 内容は、その環境下で懸命に生き、知恵とテクノロジーで未来を切り開く**「人間賛歌」**のトーンにすること。
-      - 読んだ後に「未来は変えられる」と勇気が湧くような内容にしてください。
       - **文字数: 日本語で450文字以内（厳守）。**
 
       ### 2. 【Insight】フィールド: "論理的・客観的"
       - ここは**「物語」ではありません。** 戦略コンサルタントとして、冷徹かつ客観的に分析してください。
       - 主人公の名前やストーリーの要素は一切出さないでください。
-      - **文体**: ビジネスレポート調（「〜である」「〜が推奨される」）。断定形で簡潔に。
+      - **文体**: ビジネスレポート調（「〜である」）。断定形で簡潔に。
       - **内容は具体的かつ戦略的に**:
          - context: そのシナリオにおける市場環境の概況。**（重要: カード表示用に100文字程度に短く要約すること）**
          - issue: 企業が直面する構造的な経営課題。
@@ -56,6 +56,7 @@ export async function POST(request: Request) {
           "axisX": { "label": "...", "min": "...", "max": "..." },
           "axisY": { "label": "...", "min": "...", "max": "..." },
           "rationale": "...",
+          "portfolioAnalysis": "戦略ポートフォリオ（リソース配分）の全体傾向、あるいは各シナリオ間の顕著な違いについての戦略的考察。100文字程度の日本語で解説。",
           "scenarios": [
               { 
                   "id": "Scenario A", 
@@ -63,8 +64,8 @@ export async function POST(request: Request) {
                   "headline": "...", 
                   "insight": {
                     "context": "市場環境の概況(100文字程度)...",
-                    "issue": "直面する課題...",
-                    "breakthrough": "具体的な解決策..."
+                    "issue": "...",
+                    "breakthrough": "..."
                   }, 
                   "actionAdvice": "...", 
                   "story": "主人公の物語...", 
@@ -110,7 +111,6 @@ export async function POST(request: Request) {
     // --- Mode 2: 画像生成 (Imagen 4.0) ---
     if (mode === 'image') {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
-      
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -119,13 +119,11 @@ export async function POST(request: Request) {
           parameters: { sampleCount: 1, aspectRatio: "16:9" }
         })
       });
-      
       if (!response.ok) {
         const errText = await response.text();
         console.error("Imagen Error:", errText);
         throw new Error(`Image Gen Failed: ${errText}`);
       }
-      
       const data = await response.json();
       const base64 = data.predictions?.[0]?.bytesBase64Encoded || data.predictions?.[0]?.image?.bytesBase64Encoded;
       return NextResponse.json({ base64 });
