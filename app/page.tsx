@@ -157,6 +157,7 @@ const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingSce
       scenario.colorCode === 'blue' ? 'border-blue-500 bg-blue-50/50' : 
       scenario.colorCode === 'yellow' ? 'border-yellow-400 bg-yellow-50/50' : 'border-gray-500 bg-gray-50/50'
     } mb-6`}>
+      {/* ヘッダー部分（タイトル・画像）は変更なし */}
       <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
         <div className="flex-1">
           <span className="text-xs font-bold uppercase tracking-wider opacity-60">{scenario.id} ({scenario.probability}%)</span>
@@ -180,9 +181,30 @@ const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingSce
         )}
       </div>
 
+      {/* ▼▼▼ ここを左右入れ替えました ▼▼▼ */}
       <div className="grid md:grid-cols-2 gap-6">
+        
+        {/* 左側 (元右側): ビジネスインサイト・アクション・兆候 */}
         <div className="text-sm space-y-3">
-          <div className="bg-white/60 p-4 rounded-lg relative">
+          <div className="bg-indigo-50/50 p-3 rounded border border-indigo-100">
+            <span className="font-bold text-xs text-indigo-600 block mb-1">💡 BUSINESS INSIGHT</span>
+            {scenario.insight.breakthrough}
+          </div>
+          <div>
+            <span className="font-bold text-xs text-green-600 block">✅ ACTION</span>
+            <p className="text-gray-700">{scenario.actionAdvice}</p>
+          </div>
+          <div>
+            <span className="font-bold text-xs text-orange-600 block">📡 EARLY SIGNS</span>
+            <ul className="list-disc list-inside text-gray-600 text-xs pl-1">
+              {scenario.earlySigns.map((s:string, i:number) => <li key={i}>{s}</li>)}
+            </ul>
+          </div>
+        </div>
+
+        {/* 右側 (元左側): ストーリー・音声操作 */}
+        <div className="text-sm space-y-3">
+          <div className="bg-white/60 p-4 rounded-lg relative h-full"> {/* h-fullを追加して高さを合わせると綺麗です */}
             <div className="flex justify-between items-center mb-2">
               <p className="font-bold text-xs text-gray-500">STORY</p>
               <div className="flex gap-1 items-center">
@@ -202,12 +224,10 @@ const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingSce
             <p className="leading-relaxed text-gray-800 font-serif whitespace-pre-wrap">{scenario.story}</p>
           </div>
         </div>
-        <div className="text-sm space-y-3">
-          <div className="bg-indigo-50/50 p-3 rounded border border-indigo-100"><span className="font-bold text-xs text-indigo-600 block mb-1">💡 BUSINESS INSIGHT</span>{scenario.insight.breakthrough}</div>
-          <div><span className="font-bold text-xs text-green-600 block">✅ ACTION</span><p className="text-gray-700">{scenario.actionAdvice}</p></div>
-          <div><span className="font-bold text-xs text-orange-600 block">📡 EARLY SIGNS</span><ul className="list-disc list-inside text-gray-600 text-xs pl-1">{scenario.earlySigns.map((s:string, i:number) => <li key={i}>{s}</li>)}</ul></div>
-        </div>
+
       </div>
+      {/* ▲▲▲ 入れ替え終了 ▲▲▲ */}
+
     </div>
   );
 };
