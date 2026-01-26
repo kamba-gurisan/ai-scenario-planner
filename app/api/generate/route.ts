@@ -104,17 +104,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ text: response.text() });
     }
 
-    // --- Mode 2: 画像生成 (Gemini 2.5 Flash Native / 16:9設定追加) ---
+    // --- Mode 2: 画像生成 (Gemini 2.5 Flash Native) ---
     if (mode === 'image') {
       const model = genAI.getGenerativeModel({ 
         model: "gemini-2.5-flash",
         generationConfig: {
-          responseMimeType: "image/jpeg",
-          // @ts-ignore // SDKの型定義が古い場合にエラーにならないよう無視させる
-          aspectRatio: "16:9" 
+          responseMimeType: "image/jpeg"
         }
       });
 
+      // プロンプトに "ar 16:9" が含まれているので、AIはそれを読み取って横長にします
       const result = await model.generateContent(prompt);
       const response = await result.response;
       
