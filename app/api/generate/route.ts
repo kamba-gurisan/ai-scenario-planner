@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (希望の結末・厳守版) ---
+    // --- Mode 1: シナリオ生成 (カード内文字数調整版) ---
     if (mode === 'scenario') {
       let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、同時に**希望を描くベストセラー作家**でもあります。
       これから作成するシナリオには、**「論理的なビジネス分析」と「情緒的な希望の物語」の両方が求められます。**
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       - 主人公の名前やストーリーの要素は一切出さないでください。
       - **文体**: ビジネスレポート調（「〜である」「〜が推奨される」）。断定形で簡潔に。
       - **内容は具体的かつ戦略的に**:
-         - context: そのシナリオにおける市場環境・競合状況の客観的ファクト。
+         - context: そのシナリオにおける市場環境の概況。**（重要: カード表示用に100文字程度に短く要約すること）**
          - issue: 企業が直面する構造的な経営課題。
          - breakthrough: 収益化のための具体的なビジネスモデルや技術的解決策。
       
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
                   "title": "...", 
                   "headline": "...", 
                   "insight": {
-                    "context": "市場環境の分析...",
+                    "context": "市場環境の概況(100文字程度)...",
                     "issue": "直面する課題...",
                     "breakthrough": "具体的な解決策..."
                   }, 
