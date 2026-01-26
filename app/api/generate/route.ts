@@ -9,26 +9,37 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (ペルソナ & サクセスストーリー版) ---
+    // --- Mode 1: シナリオ生成 (軸ズレ防止 & サクセスストーリー版) ---
     if (mode === 'scenario') {
       let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、ベストセラーSF作家です。STEEP分析を用い、2030年の未来シナリオを構築します。
       
       ## タスク
       1. 事業テーマに基づき、不確実性が高く影響度の大きい2つの変動要因（X軸、Y軸）を特定。
          Min/Maxの状態は「4文字以内の短い単語」で表現。
-      2. 4つの未来シナリオ(A:左上, B:右上, C:左下, D:右下)を作成。
+      2. 4つの未来シナリオ(A, B, C, D)を作成。
       3. 各シナリオの発生確率は、現在の「初期兆候(Early Signs)」に基づき、合計100%になるようメリハリをつけて配分（一律25%は禁止）。
 
-      ## ストーリー作成のルール (重要)
-      各シナリオの 'story' は、単なる市場予測レポートではなく、**「その世界で生きる、ある一人の主人公（ペルソナ）」のショートストーリー**にしてください。
+      ## ★重要: マトリクス定義 (厳守)
+      各シナリオの内容は、以下の軸の組み合わせと**完全に一致**させてください。矛盾は許されません。
+      
+      - **X軸**: 左 = Min, 右 = Max
+      - **Y軸**: 下 = Min, 上 = Max
+
+      【象限の定義】
+      - **Scenario A (左上)**: [X軸 = Min] かつ [Y軸 = Max] の世界
+      - **Scenario B (右上)**: [X軸 = Max] かつ [Y軸 = Max] の世界
+      - **Scenario C (左下)**: [X軸 = Min] かつ [Y軸 = Min] の世界
+      - **Scenario D (右下)**: [X軸 = Max] かつ [Y軸 = Min] の世界
+
+      ## ストーリー作成のルール
+      各シナリオの 'story' は、単なる市場予測レポートではなく、**「その定義された世界（軸の状態）で生きる、ある一人の主人公（ペルソナ）」のショートストーリー**にしてください。
       
       【必須要件】
       1. **主人公の設定**: テーマに関連する職業の人物（名前付き）を設定。
-      2. **構成**: 課題発生 → 機転/新技術での解決 → 成功（ハッピーエンド）。
-      3. **★最重要: 文字数は「日本語で450文字以内」に収めること。**
-         - 800文字も書いてはいけません。
-         - 描写は具体的かつ簡潔に。無駄な形容詞を削り、テンポよく展開させること。
-         - 長くなりそうな場合は、詳細な情景描写よりも「アクションと結果」を優先して短くまとめること。
+      2. **構成**: その象限特有の環境下での課題発生 → 機転/新技術での解決 → 成功（ハッピーエンド）。
+         ※例えば「Y軸=経済停滞」のシナリオなら、「不況下でも低コスト技術で成功する物語」にするなど、軸の状況と物語を整合させること。
+      3. **★文字数制限: 日本語で450文字以内に収めること（厳守）。**
+         - 描写は具体的かつ簡潔に。アクション重視でテンポよく。
 
       ## 出力JSONフォーマット (厳守)
       {
@@ -48,7 +59,7 @@ export async function POST(request: Request) {
                   "audioTone": "Speak in a ... tone:", 
                   "probability": 40, 
                   "allocation": [
-                    // ★重要: valは 1(低)〜5(高) の5段階評価で出力すること
+                    // valは 1(低)〜5(高) の5段階評価
                     {"subject":"イノベーション","val":5}, 
                     {"subject":"マーケティング","val":3}, 
                     {"subject":"人材・組織","val":2}, 
@@ -59,7 +70,6 @@ export async function POST(request: Request) {
           ]
       }`;
 
-      // 手動軸設定がある場合の処理
       if (axes) {
         systemInstructionText += `\n\n【重要】以下の軸設定を必ず使用してください。空欄(undefined/null/空文字)の項目については、テーマに合わせてあなたが最適値を補完してください。\n`;
         
@@ -86,12 +96,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ text: response.text() });
     }
 
-    // --- Mode 2: 画像生成 ---
+    // --- Mode 2: 画像生成 (Imagen 4.0) ---
     if (mode === 'image') {
-      // Imagen 4.0 または 3.0 を使用
-       // ✅ 4.0 に変更します
-const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
-
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -100,13 +107,11 @@ const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-
           parameters: { sampleCount: 1, aspectRatio: "16:9" }
         })
       });
-      
       if (!response.ok) {
         const errText = await response.text();
         console.error("Imagen Error:", errText);
         throw new Error(`Image Gen Failed: ${errText}`);
       }
-      
       const data = await response.json();
       const base64 = data.predictions?.[0]?.bytesBase64Encoded || data.predictions?.[0]?.image?.bytesBase64Encoded;
       return NextResponse.json({ base64 });
