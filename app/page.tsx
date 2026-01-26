@@ -16,7 +16,7 @@ import PptxGenJS from "pptxgenjs";
 // =================================================================
 const SYSTEM_CONFIG = {
   APP_NAME: "AI Scenario Planner",
-  VERSION: "v0.1.0b", // ← 更新時はここだけ変えれば全てに反映されます
+  VERSION: "v.0.1.0b", // ← 更新時はここだけ変えれば全てに反映されます
   COPYRIGHT: "© 2026 GURISAN. All Rights Reserved" // ← 全出力物の著作権表記
 };
 
