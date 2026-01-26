@@ -117,7 +117,7 @@ const Icons = {
 
 const PROMPTS = {
   IMAGE_GENERATION: (imgPrompt: string) => 
-    `A breathtaking cinematic film still from a movie, dramatic lighting, atmospheric, highly detailed, wide angle shot, realistic texture, 8k resolution. ${imgPrompt}. No text, no words.`
+    `A breathtaking cinematic film still from a movie, dramatic lighting, atmospheric, highly detailed, wide angle shot, realistic texture, ar 16:9, 2k resolution. ${imgPrompt}. No text, no words.`
 };
 
 const RadarChart = ({ scenarios }: any) => {
