@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (高校生向け解説 & 300文字版) ---
+    // --- Mode 1: シナリオ生成 (STORY 600文字版) ---
     if (mode === 'scenario') {
       let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、同時に**希望を描くベストセラー作家**でもあります。
       これから作成するシナリオには、**「論理的なビジネス分析」と「情緒的な希望の物語」の両方が求められます。**
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       - **主人公の設定**: テーマに関連する職業の人物を設定。
         - **★名前のルール**: **「カタカナで氏または名のみ」**（例：タナカ、ケンジ）にすること。フルネーム禁止。
       - 内容は、その環境下で懸命に生き、知恵とテクノロジーで未来を切り開く**「人間賛歌」**のトーンにすること。
-      - **文字数: 日本語で450文字以内（厳守）。**
+      - **文字数: 日本語で600文字程度（厳守）。**
 
       ### 2. 【Insight & Action】フィールド: "高校生でもわかる論理的解説"
       - ここは**「物語」ではありません**が、専門用語ばかりの難解なレポートも禁止です。
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
                     "breakthrough": "高校生でもわかる300文字程度の丁寧なビジネスインサイト解説..."
                   }, 
                   "actionAdvice": "高校生でもわかる300文字程度の具体的なアクション提案...", 
-                  "story": "主人公の物語...", 
+                  "story": "主人公の物語(600文字程度)...", 
                   "earlySigns": ["兆候1", "兆候2", "兆候3"], 
                   "imgPrompt": "Detailed prompt in English describing a cinematic shot of the protagonist (from the story) smiling confidently in a successful moment. Bright lighting, inspiring atmosphere. No text.",
                   "audioTone": "Speak in a positive, inspiring, and confident tone:", 
