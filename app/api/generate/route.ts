@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { mode, prompt, text, theme, details, axes } = body;
 
-    // --- Mode 1: シナリオ生成 (戦略ポートフォリオ定義変更版) ---
+    // --- Mode 1: シナリオ生成 (高校生向け解説 & 300文字版) ---
     if (mode === 'scenario') {
       let systemInstructionText = `あなたは世界最高峰の戦略コンサルタントであり、同時に**希望を描くベストセラー作家**でもあります。
       これから作成するシナリオには、**「論理的なビジネス分析」と「情緒的な希望の物語」の両方が求められます。**
@@ -39,19 +39,25 @@ export async function POST(request: Request) {
       - 内容は、その環境下で懸命に生き、知恵とテクノロジーで未来を切り開く**「人間賛歌」**のトーンにすること。
       - **文字数: 日本語で450文字以内（厳守）。**
 
-      ### 2. 【Insight】フィールド: "論理的・客観的"
-      - ここは**「物語」ではありません。** 戦略コンサルタントとして、冷徹かつ客観的に分析してください。
-      - **文体**: ビジネスレポート調（「〜である」）。断定形で簡潔に。
-      - context: そのシナリオにおける市場環境の概況。**（重要: カード表示用に100文字程度に短く要約すること）**
-      - issue: 企業が直面する構造的な経営課題。
-      - breakthrough: 収益化のための具体的なビジネスモデルや技術的解決策。
+      ### 2. 【Insight & Action】フィールド: "高校生でもわかる論理的解説"
+      - ここは**「物語」ではありません**が、専門用語ばかりの難解なレポートも禁止です。
+      - **ターゲット**: **「高校生」に向けて、ビジネスの仕組みや戦略をわかりやすく解説するつもりで書いてください。**
+      - **文体**: 「〜です/ます」調。専門用語は噛み砕いて説明すること。
+      - **各項目の定義**:
+         - **context**: 市場環境の概況。**（重要: カード表示用に100文字程度に短く要約すること）**
+         - **issue**: 企業が直面する構造的な経営課題。
+         - **breakthrough (BUSINESS INSIGHT)**: 
+             - なぜその解決策がビジネスとして成り立つのか？ 従来と何が違うのか？
+             - **300文字程度**で、論理的かつ丁寧に解説してください。
+         - **actionAdvice (ACTION)**:
+             - 企業や個人は具体的にどう動くべきか？ 成功の鍵は何か？
+             - **300文字程度**で、具体的なアクションを提案してください。
       
       ### 3. 【Early Signs】フィールド
       - 現在すでに起きている、または起き始めている「未来の兆候」を**必ず3つ**挙げてください。
 
       ### 4. 【Allocation & Portfolio Analysis】フィールド (戦略リソース配分)
       - **allocation**: そのシナリオが現実になった際、**「企業が成功するためにとるべき理想的なリソース配分（戦略）」**を5段階で示してください。
-         - (例: イノベーション重視のシナリオならInnovation=5, リスク管理は3など)
       - **portfolioAnalysis**: 4つのシナリオそれぞれの「理想的な戦略（配分）」を見比べ、**共通して投資すべき分野や、シナリオによって判断が分かれる戦略的ポイント**を、100文字程度の日本語で特徴的に解説してください。
 
       ## 出力JSONフォーマット (厳守)
@@ -68,9 +74,9 @@ export async function POST(request: Request) {
                   "insight": {
                     "context": "市場環境の概況(100文字程度)...",
                     "issue": "...",
-                    "breakthrough": "..."
+                    "breakthrough": "高校生でもわかる300文字程度の丁寧なビジネスインサイト解説..."
                   }, 
-                  "actionAdvice": "...", 
+                  "actionAdvice": "高校生でもわかる300文字程度の具体的なアクション提案...", 
                   "story": "主人公の物語...", 
                   "earlySigns": ["兆候1", "兆候2", "兆候3"], 
                   "imgPrompt": "Detailed prompt in English describing a cinematic shot of the protagonist (from the story) smiling confidently in a successful moment. Bright lighting, inspiring atmosphere. No text.",
