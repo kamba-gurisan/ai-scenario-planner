@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-// ✅ 共通のFirebase設定を読み込む（これが大事！）
+// ✅ 共通のFirebase設定を読み込む
 import { db, auth } from "../lib/firebase";
 
 // ✅ 必要な機能だけをインポート
@@ -19,11 +19,6 @@ const SYSTEM_CONFIG = {
   COPYRIGHT: "© 2026 GURISAN. All Rights Reserved"
 };
 
-// --------------------------------------------------------
-// 👇 これより下に `const PLAN_LIMITS = ...` があればOKです！
-// --------------------------------------------------------
-
-// 👇 ここから下は元のコード（const PLAN_LIMITS ...）につながります
 // --- 💎 プラン定義と制限設定 ---
 const PLAN_LIMITS: any = {
   free: {
@@ -486,7 +481,7 @@ export default function Home() {
     }
   };
 
-  // --- PPTXエクスポート機能 (フォント指定強化版) ---
+  // --- PPTXエクスポート機能 ---
   const handleExportPptx = async () => {
     if (!checkLimit('pptx')) return;
     if (!result) return;
@@ -495,101 +490,52 @@ export default function Home() {
 
     try {
       const pres = new PptxGenJS();
-      
-      // 共通レイアウト設定
       const LAYOUT = {
         W: 10.0, H: 5.625, MARGIN: 0.4,
-        COLOR: {
-          MAIN: "1E293B", SUB: "64748B", ACCENT: "4F46E5",
-          BG: "F8FAFC", WHITE: "FFFFFF", AXIS_LINE: "CBD5E1"
-        }
+        COLOR: { MAIN: "1E293B", SUB: "64748B", ACCENT: "4F46E5", BG: "F8FAFC", WHITE: "FFFFFF", AXIS_LINE: "CBD5E1" }
       };
-      
-      // フォント指定オプション (Meiryo UI)
       const JP_FONT = { fontFace: "Meiryo UI" };
-      
-      const COPYRIGHT_STYLE = {
-        x: 0, y: 5.4, w: "100%", align: "right", 
-        fontSize: 8, color: "94A3B8", margin: 0.2, ...JP_FONT
-      };
-
-      const SCENARIO_STYLES: any = {
-        A: { color: "EAB308", bg: "FEFCE8" },
-        B: { color: "EF4444", bg: "FEF2F2" },
-        C: { color: "6B7280", bg: "F9FAFB" },
-        D: { color: "3B82F6", bg: "EFF6FF" } 
-      };
+      const COPYRIGHT_STYLE = { x: 0, y: 5.4, w: "100%", align: "right", fontSize: 8, color: "94A3B8", margin: 0.2, ...JP_FONT };
+      const SCENARIO_STYLES: any = { A: { color: "EAB308", bg: "FEFCE8" }, B: { color: "EF4444", bg: "FEF2F2" }, C: { color: "6B7280", bg: "F9FAFB" }, D: { color: "3B82F6", bg: "EFF6FF" } };
 
       let summaryDetails = details;
       if (details && details.length > 100) {
         try {
-          const res = await fetch("/api/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mode: 'summarize', text: details }),
-          });
+          const res = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: 'summarize', text: details }), });
           const data = await res.json();
           if (data.summary) summaryDetails = data.summary;
-        } catch (e) {
-          console.error("Summary failed", e);
-        }
+        } catch (e) { console.error("Summary failed", e); }
       }
 
-      // --- 1. 表紙スライド ---
+      // 1. 表紙
       let slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
       slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: "100%", h: 0.15, fill: { color: LAYOUT.COLOR.ACCENT } });
-      
-      slide.addText(SYSTEM_CONFIG.APP_NAME, { 
-        x: 0.5, y: 1.5, w: 9, fontSize: 14, color: LAYOUT.COLOR.ACCENT, bold: true, align: "center", charSpacing: 3, ...JP_FONT
-      });
-      slide.addText(theme, { 
-        x: 0.5, y: 2.0, w: 9, fontSize: 36, color: LAYOUT.COLOR.MAIN, bold: true, align: "center", fontFace: "Meiryo UI", shrinkText: true 
-      });
-
+      slide.addText(SYSTEM_CONFIG.APP_NAME, { x: 0.5, y: 1.5, w: 9, fontSize: 14, color: LAYOUT.COLOR.ACCENT, bold: true, align: "center", charSpacing: 3, ...JP_FONT });
+      slide.addText(theme, { x: 0.5, y: 2.0, w: 9, fontSize: 36, color: LAYOUT.COLOR.MAIN, bold: true, align: "center", fontFace: "Meiryo UI", shrinkText: true });
       if (summaryDetails) {
-        slide.addShape(pres.ShapeType.rect, { 
-          x: 1.5, y: 3.2, w: 7, h: 1.8, 
-          fill: { color: LAYOUT.COLOR.WHITE }, 
-          line: { color: "E2E8F0", width: 1 }, 
-          rectRadius: 0.05, 
-          shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } 
-        } as any); 
-
-        slide.addText("前提条件 / コンテキスト", { 
-          x: 1.7, y: 3.4, w: 6.6, fontSize: 10, color: LAYOUT.COLOR.SUB, bold: true, ...JP_FONT
-        });
-        slide.addText(summaryDetails, { 
-          x: 1.7, y: 3.7, w: 6.6, h: 1.1, 
-          fontSize: 11, color: LAYOUT.COLOR.MAIN, align: "left", valign: "top", 
-          lineSpacing: 18, shrinkText: true, ...JP_FONT
-        });
+        slide.addShape(pres.ShapeType.rect, { x: 1.5, y: 3.2, w: 7, h: 1.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: 0.05, shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } } as any); 
+        slide.addText("前提条件 / コンテキスト", { x: 1.7, y: 3.4, w: 6.6, fontSize: 10, color: LAYOUT.COLOR.SUB, bold: true, ...JP_FONT });
+        slide.addText(summaryDetails, { x: 1.7, y: 3.7, w: 6.6, h: 1.1, fontSize: 11, color: LAYOUT.COLOR.MAIN, align: "left", valign: "top", lineSpacing: 18, shrinkText: true, ...JP_FONT });
       }
-      
       slide.addText(`Generated on ${new Date().toLocaleDateString()} | Ver: ${SYSTEM_CONFIG.VERSION}`, { x: 0.5, y: 5.2, w: 9, fontSize: 9, color: "94A3B8", align: "center" });
       slide.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE, align: "center", y: 5.4 } as any);
 
-
-      // --- 2. マトリクススライド ---
+      // 2. マトリクス
       slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
       slide.addText("不確実性マトリクス", { x: 0.4, y: 0.3, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
-
       const chartX = 1.2, chartY = 1.0, chartW = 8.2, chartH = 4.0;
       const centerX = chartX + chartW / 2;
       const centerY = chartY + chartH / 2;
-
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY, w: 0, h: chartH, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: chartY + chartH, w: chartW, h: 0, line: { color: LAYOUT.COLOR.AXIS_LINE, width: 3 } });
       slide.addShape(pres.ShapeType.line, { x: centerX, y: chartY, w: 0, h: chartH, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: centerY, w: chartW, h: 0, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
-
       const valStyle = { fontSize: 10, color: LAYOUT.COLOR.ACCENT, bold: true, ...JP_FONT };
-      
       slide.addText(result.axisY.label, { x: 0.3, y: chartY, w: 0.6, h: chartH, fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true, align: "center", valign: "middle", vert: "vert270", ...JP_FONT } as any); 
       slide.addText(result.axisY.max, { x: chartX - 2.0, y: chartY - 0.15, w: 1.9, align: "right", ...valStyle });
       slide.addText(result.axisY.min, { x: chartX - 2.0, y: chartY + chartH - 0.15, w: 1.9, align: "right", ...valStyle });
-
       slide.addText(result.axisX.label, { x: centerX - 2.0, y: chartY + chartH + 0.4, w: 4.0, align: "center", fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true, ...JP_FONT });
       slide.addText(result.axisX.min, { x: chartX, y: chartY + chartH + 0.1, w: 2.5, align: "left", ...valStyle });
       slide.addText(result.axisX.max, { x: chartX + chartW - 2.5, y: chartY + chartH + 0.1, w: 2.5, align: "right", ...valStyle });
@@ -606,127 +552,60 @@ export default function Home() {
         slide.addText(s.title, { x: x + 0.2, y: y + 0.5, w: cardW - 0.4, h: 0.6, fontSize: 12, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true, ...JP_FONT });
         slide.addText(s.headline, { x: x + 0.2, y: y + 1.0, w: cardW - 0.4, h: 0.7, fontSize: 9, color: LAYOUT.COLOR.SUB, valign: "top", shrinkText: true, ...JP_FONT });
       };
-
       drawCard("A", centerX - cardW - cardPaddingX, centerY - cardH - cardPaddingY);
       drawCard("B", centerX + cardPaddingX, centerY - cardH - cardPaddingY);
       drawCard("C", centerX - cardW - cardPaddingX, centerY + cardPaddingY);
       drawCard("D", centerX + cardPaddingX, centerY + cardPaddingY);
-
       slide.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
 
-
-      // --- 3. 各シナリオ詳細 ---
+      // 3. 各シナリオ詳細
       for (const s of result.scenarios) {
-        let sid = "C";
-        if (s.id.includes("A")) sid = "A";
-        else if (s.id.includes("B")) sid = "B";
-        else if (s.id.includes("D")) sid = "D";
+        let sid = s.id.includes("A") ? "A" : s.id.includes("B") ? "B" : s.id.includes("D") ? "D" : "C";
         const style = SCENARIO_STYLES[sid];
-
-        // === Page 1 ===
         const p1 = pres.addSlide();
         p1.background = { color: LAYOUT.COLOR.BG };
-        
         p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.8, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 0.15, h: 0.8, fill: { color: style.color } });
         p1.addText(`${s.id}: ${s.title}`, { x: 0.8, y: 0.3, w: 7.0, h: 0.8, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI", valign: "middle" });
         p1.addText(`確率: ${s.probability}%`, { x: 8.0, y: 0.3, w: 1.3, h: 0.8, fontSize: 12, align: "center", color: style.color, bold: true, valign: "middle", ...JP_FONT });
-
         p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.3, w: 9.0, h: 4.0, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
-
-        if (s.imageUrl && s.imageUrl.startsWith("data:image")) {
-          p1.addImage({ data: s.imageUrl, x: 0.8, y: 1.6, w: 2.8, h: 1.58 }); 
-        } else {
-          p1.addShape(pres.ShapeType.rect, { x: 0.8, y: 1.6, w: 2.8, h: 1.58, fill: { color: "F1F5F9" } });
-          p1.addText("No Image", { x: 0.8, y: 2.2, w: 2.8, align: "center", color: "94A3B8" });
-        }
-
+        if (s.imageUrl && s.imageUrl.startsWith("data:image")) { p1.addImage({ data: s.imageUrl, x: 0.8, y: 1.6, w: 2.8, h: 1.58 }); }
         p1.addText(s.headline, { x: 3.8, y: 1.6, w: 5.4, h: 1.5, fontSize: 16, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true, ...JP_FONT });
         p1.addText("STORY", { x: 0.8, y: 3.3, fontSize: 10, bold: true, color: "94A3B8" });
-        
-        const targetAudioUrl = s.audioUrl || audioCache[s.id];
-        if (targetAudioUrl) {
-          try {
-            const audioBase64 = await urlToBase64(targetAudioUrl);
-            p1.addMedia({ type: "audio", data: `data:audio/wav;base64,${audioBase64}`, x: 1.5, y: 3.25, w: 0.3, h: 0.3 });
-            p1.addText("🔊 音声を再生", { x: 1.8, y: 3.25, fontSize: 9, color: LAYOUT.COLOR.ACCENT, ...JP_FONT });
-          } catch (e) { console.error("Audio embed failed", e); }
-        }
-
         p1.addText(s.story, { x: 0.8, y: 3.5, w: 8.4, h: 1.6, fontSize: 11, color: "374151", align: "justify", valign: "top", shrinkText: true, lineSpacing: 15, ...JP_FONT });
         p1.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
 
-
-        // === Page 2 ===
         const p2 = pres.addSlide();
         p2.background = { color: LAYOUT.COLOR.BG };
-
         p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05 } as any);
         p2.addText(`${s.id} - Strategy & Analysis`, { x: 0.7, y: 0.3, h: 0.5, fontSize: 12, bold: true, color: LAYOUT.COLOR.SUB, valign: "middle" });
-
         p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.0, w: 3.5, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
-        p2.addText("理想的なリソース配分", { x: 0.5, y: 1.2, w: 3.5, align: "center", fontSize: 11, bold: true, color: LAYOUT.COLOR.MAIN, ...JP_FONT });
-        
         const chartData = [{ name: s.title, labels: ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"], values: s.allocation.map((a: any) => a.val) }];
         p2.addChart(pres.ChartType.radar, chartData, { x: 0.6, y: 1.5, w: 3.3, h: 3.3, radarStyle: "marker", chartColors: [style.color], chartColorsOpacity: 40, valAxisHidden: true, legend: { show: false }, catAxisLabelFontSize: 9, catAxisLabelColor: "64748B", catAxisLabelFontFace: "Meiryo UI" } as any);
-
-        const rightX = 4.2, rightW = 5.3, boxH = 1.3;
-
-        p2.addShape(pres.ShapeType.rect, { x: rightX, y: 1.0, w: rightW, h: boxH, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } } as any);
-        p2.addText("BUSINESS INSIGHT", { x: rightX + 0.2, y: 1.1, fontSize: 9, bold: true, color: LAYOUT.COLOR.ACCENT });
-        p2.addText(s.insight.breakthrough, { x: rightX + 0.2, y: 1.3, w: rightW - 0.4, h: boxH - 0.4, fontSize: 10, color: "1F2937", valign: "top", shrinkText: true, ...JP_FONT });
-
-        p2.addShape(pres.ShapeType.rect, { x: rightX, y: 1.0 + boxH + 0.15, w: rightW, h: boxH, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } } as any);
-        p2.addText("STRATEGIC ACTION", { x: rightX + 0.2, y: 1.0 + boxH + 0.25, fontSize: 9, bold: true, color: "059669" });
-        p2.addText(s.actionAdvice, { x: rightX + 0.2, y: 1.0 + boxH + 0.45, w: rightW - 0.4, h: boxH - 0.4, fontSize: 10, color: "1F2937", valign: "top", shrinkText: true, ...JP_FONT });
-
-        p2.addShape(pres.ShapeType.rect, { x: rightX, y: 1.0 + (boxH + 0.15) * 2, w: rightW, h: boxH, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, offset: 2, angle: 90 } } as any);
-        p2.addText("EARLY SIGNS (兆候)", { x: rightX + 0.2, y: 1.0 + (boxH + 0.15) * 2 + 0.1, fontSize: 9, bold: true, color: "D97706" });
-        const signsList = s.earlySigns.map((es: string) => `• ${es}`).join("\n");
-        p2.addText(signsList, { x: rightX + 0.2, y: 1.0 + (boxH + 0.15) * 2 + 0.3, w: rightW - 0.4, h: boxH - 0.4, fontSize: 10, color: "4B5563", valign: "top", shrinkText: true, ...JP_FONT });
-
+        p2.addText("BUSINESS INSIGHT", { x: 4.4, y: 1.1, fontSize: 9, bold: true, color: LAYOUT.COLOR.ACCENT });
+        p2.addText(s.insight.breakthrough, { x: 4.4, y: 1.3, w: 5.1, fontSize: 10, color: "1F2937", ...JP_FONT });
         p2.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
       }
-
       pres.writeFile({ fileName: `${theme.replace(/\s+/g, '_')}_ScenarioReport.pptx` });
-
-    } catch (e) { console.error(e); alert("PPTX生成中にエラーが発生しました"); } finally { setIsExporting(false); setIsLoading(false); }
+    } catch (e) { alert("PPTX生成失敗"); } finally { setIsExporting(false); setIsLoading(false); }
   };
 
   const handleSaveProject = async () => {
     if (!result) return;
     try {
       const scenariosToSave = await Promise.all(result.scenarios.map(async (s: any) => {
-        let imageBase64 = null;
-        let audioBase64 = null;
-        if (s.imageUrl) {
-          if (s.imageUrl.startsWith('data:')) imageBase64 = s.imageUrl.split(',')[1];
-          else imageBase64 = await urlToBase64(s.imageUrl);
-        }
-        if (s.audioUrl) {
-          audioBase64 = await urlToBase64(s.audioUrl);
-        }
+        let imageBase64 = null; let audioBase64 = null;
+        if (s.imageUrl) imageBase64 = s.imageUrl.startsWith('data:') ? s.imageUrl.split(',')[1] : await urlToBase64(s.imageUrl);
+        if (s.audioUrl) audioBase64 = await urlToBase64(s.audioUrl);
         return { ...s, savedImage: imageBase64, savedAudio: audioBase64 };
       }));
-
-      const saveData = {
-        meta: {
-          appVersion: SYSTEM_CONFIG.VERSION,
-          copyright: SYSTEM_CONFIG.COPYRIGHT,
-          savedAt: new Date().toISOString()
-        },
-        theme,
-        details,
-        result: { ...result, scenarios: scenariosToSave },
-        customAxes: customAxes
-      };
-
+      const saveData = { meta: { appVersion: SYSTEM_CONFIG.VERSION, copyright: SYSTEM_CONFIG.COPYRIGHT, savedAt: new Date().toISOString() }, theme, details, result: { ...result, scenarios: scenariosToSave }, customAxes: customAxes };
       const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: "application/json" });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = `${theme.replace(/\s+/g, '_')}_project.json`;
       link.click();
-    } catch (e) { console.error(e); alert("保存に失敗しました"); }
+    } catch (e) { alert("保存に失敗しました"); }
   };
 
   const handleLoadProject = (e: any) => {
@@ -736,46 +615,25 @@ export default function Home() {
     reader.onload = (event: any) => {
       try {
         const data = JSON.parse(event.target.result);
-        setTheme(data.theme);
-        setDetails(data.details);
-        
-        if (data.customAxes) {
-          setCustomAxes(data.customAxes);
-          setIsCustomAxesMode(true);
-        }
-
+        setTheme(data.theme); setDetails(data.details);
+        if (data.customAxes) { setCustomAxes(data.customAxes); setIsCustomAxesMode(true); }
         const restoredScenarios = data.result.scenarios.map((s: any) => ({
           ...s,
           imageUrl: s.savedImage ? `data:image/png;base64,${s.savedImage}` : null,
           audioUrl: s.savedAudio ? URL.createObjectURL(base64ToBlob(s.savedAudio, 'audio/wav')) : null
         }));
-
         setResult({ ...data.result, scenarios: restoredScenarios });
-        setAudioCache({});
-        setIsDetailsExpanded(false);
-      } catch (err) { alert("ファイルの読み込みに失敗しました"); }
+        setAudioCache({}); setIsDetailsExpanded(false);
+      } catch (err) { alert("読込失敗"); }
     };
     reader.readAsText(file);
     e.target.value = '';
   };
 
   const loadHistory = (item: any) => {
-    setTheme(item.theme);
-    setDetails(item.context);
-    
-    if (item.result?.axisX && item.result?.axisY) {
-      setCustomAxes({
-        x: { label: item.result.axisX.label || "", min: item.result.axisX.min || "", max: item.result.axisX.max || "" },
-        y: { label: item.result.axisY.label || "", min: item.result.axisY.min || "", max: item.result.axisY.max || "" }
-      });
-      setIsCustomAxesMode(true);
-    }
-
-    setResult(item.result);
-    setAudioCache({});
-    setIsDetailsExpanded(false);
-    setCurrentDocId(item.id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTheme(item.theme); setDetails(item.context);
+    if (item.result?.axisX && item.result?.axisY) { setCustomAxes({ x: { label: item.result.axisX.label || "", min: item.result.axisX.min || "", max: item.result.axisX.max || "" }, y: { label: item.result.axisY.label || "", min: item.result.axisY.min || "", max: item.result.axisY.max || "" } }); setIsCustomAxesMode(true); }
+    setResult(item.result); setAudioCache({}); setIsDetailsExpanded(false); setCurrentDocId(item.id); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -830,6 +688,14 @@ export default function Home() {
                     残り: {userData.plan==='pro' ? '∞' : 3 - userData.usage.scenarios}回
                   </div>
                 </div>
+                
+                {/* 🚀 アップグレードボタンを追加 (Free Planの場合のみ) */}
+                {userData.plan !== 'pro' && (
+                  <div className="scale-75 origin-right">
+                    <CheckoutButton />
+                  </div>
+                )}
+
                 <img src={user.photoURL || ""} className="w-8 h-8 rounded-full border border-gray-300" alt="user" />
                 <button onClick={() => auth.signOut()} className="text-xs text-gray-500 hover:text-red-500">Logout</button>
               </div>
@@ -840,23 +706,14 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Loading Overlay */}
       {(isLoading || isExporting) && (
         <div className="fixed inset-0 bg-white/90 z-50 flex flex-col items-center justify-center backdrop-blur-sm">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-          <h2 className="text-xl font-bold text-gray-800 animate-pulse">
-            {isExporting ? "Exporting..." : "Thinking..."}
-          </h2>
-          <p className="text-sm text-gray-500 mt-2">
-            {isExporting ? "Creating your PowerPoint presentation." : "AI is planning the future."}
-          </p>
+          <h2 className="text-xl font-bold text-gray-800 animate-pulse">{isExporting ? "Exporting..." : "Thinking..."}</h2>
         </div>
       )}
 
       <main className="max-w-5xl mx-auto px-4 pt-24">
-        <div className="mb-10 flex justify-center w-full">
-        <CheckoutButton />
-      </div>
         {!result ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div className="max-w-2xl w-full text-center space-y-8">
@@ -868,39 +725,16 @@ export default function Home() {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">詳細コンテキスト</label>
-                  <textarea value={details} onChange={e => setDetails(e.target.value)} placeholder="前提条件や課題など..." className="w-full p-4 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none h-24 resize-none" />
+                  <textarea value={details} onChange={e => setDetails(e.target.value)} placeholder="前提条件や課題など..." className="w-full p-4 bg-white/50 border border-gray-200 rounded-xl h-24" />
                 </div>
-                
-                <div className="pt-2">
-                  <label className="flex items-center gap-2 mb-3 cursor-pointer text-sm font-bold text-gray-700">
-                    <input type="checkbox" checked={isCustomAxesMode} onChange={e => setIsCustomAxesMode(e.target.checked)} className="w-4 h-4 text-indigo-600 rounded" />
-                    分析軸を手動で設定する
-                  </label>
-                  {isCustomAxesMode && (
-                    <div className="grid md:grid-cols-2 gap-4 bg-white/60 p-4 rounded-xl border border-gray-200 mb-4 animate-fade-in">
-                      <div>
-                        <p className="text-xs font-bold text-indigo-600 mb-1">X軸 (横)</p>
-                        <input type="text" placeholder="ラベル (空欄可: AI提案)" value={customAxes.x.label} onChange={e => setCustomAxes({...customAxes, x: {...customAxes.x, label: e.target.value}})} className="w-full p-2 mb-2 border rounded text-sm placeholder-indigo-300" />
-                        <div className="grid grid-cols-2 gap-2"><input type="text" placeholder="Min (空欄可)" value={customAxes.x.min} onChange={e => setCustomAxes({...customAxes, x: {...customAxes.x, min: e.target.value}})} className="w-full p-2 border rounded text-sm placeholder-gray-300" /><input type="text" placeholder="Max (空欄可)" value={customAxes.x.max} onChange={e => setCustomAxes({...customAxes, x: {...customAxes.x, max: e.target.value}})} className="w-full p-2 border rounded text-sm placeholder-gray-300" /></div>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-indigo-600 mb-1">Y軸 (縦)</p>
-                        <input type="text" placeholder="ラベル (空欄可: AI提案)" value={customAxes.y.label} onChange={e => setCustomAxes({...customAxes, y: {...customAxes.y, label: e.target.value}})} className="w-full p-2 mb-2 border rounded text-sm placeholder-indigo-300" />
-                        <div className="grid grid-cols-2 gap-2"><input type="text" placeholder="Min (空欄可)" value={customAxes.y.min} onChange={e => setCustomAxes({...customAxes, y: {...customAxes.y, min: e.target.value}})} className="w-full p-2 border rounded text-sm placeholder-gray-300" /><input type="text" placeholder="Max (空欄可)" value={customAxes.y.max} onChange={e => setCustomAxes({...customAxes, y: {...customAxes.y, max: e.target.value}})} className="w-full p-2 border rounded text-sm placeholder-gray-300" /></div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <button onClick={generateScenarios} disabled={!theme.trim() || !user} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onClick={generateScenarios} disabled={!theme.trim() || !user} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2">
                   <Icons.Brain /> {user ? "分析・シナリオ生成" : "ログインしてください"}
                 </button>
               </div>
             </div>
-
             {user && history.length > 0 && (
-              <div className="max-w-2xl mx-auto mt-12">
-                <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest text-center">History (Text Only)</h3>
+              <div className="max-w-2xl mx-auto mt-12 w-full">
+                <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest text-center">History</h3>
                 <div className="space-y-2">
                   {history.map((item) => (
                     <button key={item.id} onClick={() => loadHistory(item)} className="w-full text-left bg-white px-4 py-3 rounded border border-gray-200 hover:bg-gray-50 transition flex justify-between items-center">
@@ -914,70 +748,45 @@ export default function Home() {
           </div>
         ) : (
           <div className="space-y-8 pb-12 animate-fade-in">
-            <div className="text-center space-y-2 border-b border-gray-200 pb-6 mb-8">
-              <div className="inline-block bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold mb-2">Scenario Report</div>
+             {/* 分析結果エリア */}
+             <div className="text-center space-y-2 border-b border-gray-200 pb-6 mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{theme}</h1>
-              
               <div className="max-w-2xl mx-auto mt-4 text-left">
-                {details && (
-                  <div className="relative">
-                    <div className={`text-gray-500 text-sm bg-white/50 border border-gray-100 p-4 rounded-xl transition-all duration-300 ${isDetailsExpanded ? '' : 'max-h-24 overflow-hidden'}`}>
-                      {details.split('\n').map((line: string, i: number) => (
-                        <span key={i}>{line}<br /></span>
-                      ))}
-                    </div>
-                    {details.length > 100 && (
-                      <>
-                        {!isDetailsExpanded && (
-                          <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white/90 to-transparent pointer-events-none rounded-b-xl"></div>
-                        )}
-                        <button 
-                          onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
-                          className="mt-2 text-xs font-bold text-indigo-500 hover:text-indigo-700 flex items-center justify-center w-full focus:outline-none"
-                        >
-                          {isDetailsExpanded ? "▲ 閉じる" : "▼ 全文を表示"}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
+                <div className={`text-gray-500 text-sm bg-white/50 border border-gray-100 p-4 rounded-xl transition-all duration-300 ${isDetailsExpanded ? '' : 'max-h-24 overflow-hidden relative'}`}>
+                  {details}
+                  {!isDetailsExpanded && <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-white/90 to-transparent pointer-events-none"></div>}
+                </div>
+                <button onClick={() => setIsDetailsExpanded(!isDetailsExpanded)} className="mt-2 text-xs font-bold text-indigo-500 w-full text-center">
+                  {isDetailsExpanded ? "▲ 閉じる" : "▼ 全文を表示"}
+                </button>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm relative lg:col-span-2 border border-white/60">
-                <div className="absolute top-0 left-0 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-br-lg z-20">不確実性マトリクス</div>
                 <div className="grid grid-cols-[50px_1fr] h-full gap-2 pt-6">
                   <div className="flex flex-col items-center justify-between py-4 h-full">
                     <div className="text-xs font-bold text-gray-500">{result.axisY.max}</div>
                     <div className="flex-1 w-full flex flex-col items-center justify-center my-2 relative">
                       <div className="w-0.5 h-full bg-indigo-100 absolute top-0 left-1/2 -translate-x-1/2"></div>
-                      <div className="bg-white py-3 px-1 border border-indigo-100 rounded-full shadow-sm relative z-10 flex flex-col items-center"><span className="text-xs font-bold text-indigo-700" style={{ writingMode: 'vertical-rl' }}>{result.axisY.label}</span></div>
+                      <div className="bg-white py-3 px-1 border border-indigo-100 rounded-full shadow-sm relative z-10"><span className="text-xs font-bold text-indigo-700" style={{ writingMode: 'vertical-rl' }}>{result.axisY.label}</span></div>
                     </div>
                     <div className="text-xs font-bold text-gray-500">{result.axisY.min}</div>
                   </div>
                   <div className="flex flex-col h-full">
                     <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-4 relative z-10 h-[500px]">
-                      {['Scenario A', 'Scenario B', 'Scenario C', 'Scenario D'].map(id => {
-                        const s = result.scenarios.find((sc:any) => sc.id === id);
-                        return (
-                          <div key={id} className={`p-4 rounded-xl border flex flex-col relative bg-white/90 shadow-sm z-10 overflow-hidden h-full ${
-                            s.colorCode === 'red' ? 'border-red-200' : s.colorCode === 'blue' ? 'border-blue-200' : s.colorCode === 'yellow' ? 'border-yellow-200' : 'border-gray-200'
-                          }`}>
-                            <div className={`absolute top-0 right-0 text-xs font-bold px-3 py-1.5 rounded-bl-xl text-white ${
-                              s.colorCode === 'red' ? 'bg-red-500' : s.colorCode === 'blue' ? 'bg-blue-500' : s.colorCode === 'yellow' ? 'bg-yellow-500' : 'bg-gray-500'
-                            }`}>{s.probability}%</div>
+                      {result.scenarios.map((s:any) => (
+                          <div key={s.id} className={`p-4 rounded-xl border flex flex-col relative bg-white/90 shadow-sm z-10 overflow-hidden h-full ${s.colorCode === 'red' ? 'border-red-200' : s.colorCode === 'blue' ? 'border-blue-200' : s.colorCode === 'yellow' ? 'border-yellow-200' : 'border-gray-200'}`}>
+                            <div className={`absolute top-0 right-0 text-xs font-bold px-3 py-1.5 rounded-bl-xl text-white ${s.colorCode === 'red' ? 'bg-red-500' : s.colorCode === 'blue' ? 'bg-blue-500' : s.colorCode === 'yellow' ? 'bg-yellow-500' : 'bg-gray-500'}`}>{s.probability}%</div>
                             <span className="text-[10px] font-bold text-gray-400 mb-1 block">{s.id}</span>
-                            <h4 className="font-bold text-sm leading-tight mb-2 text-gray-900 border-b border-gray-100 pb-2">{s.title}</h4>
-                            <p className="text-xs font-bold text-gray-700 leading-snug mb-2">{s.headline}</p>
-                            <p className="text-xs text-gray-500 leading-relaxed overflow-y-auto">{s.insight.context}</p>
+                            <h4 className="font-bold text-sm leading-tight mb-2 text-gray-900">{s.title}</h4>
+                            <p className="text-xs text-gray-500 leading-relaxed overflow-y-auto">{s.headline}</p>
                           </div>
-                        );
-                      })}
+                        ))}
                     </div>
                     <div className="flex items-center justify-between mt-2 px-2">
-                      <div className="text-xs font-bold text-gray-500 w-24 text-left">{result.axisX.min}</div>
-                      <div className="flex-1 flex items-center justify-center px-2 relative h-8">
+                      <div className="text-xs font-bold text-gray-500 w-24">{result.axisX.min}</div>
+                      <div className="flex-1 flex items-center justify-center relative h-8">
                         <div className="h-0.5 bg-indigo-100 w-full absolute top-1/2 left-0 -translate-y-1/2"></div>
                         <div className="bg-white px-4 py-1 border border-indigo-100 rounded-full shadow-sm relative z-10"><span className="text-xs font-bold text-indigo-700">{result.axisX.label}</span></div>
                       </div>
@@ -986,28 +795,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-
-              <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm flex flex-col lg:col-span-1 border border-white/60">
+              <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm flex flex-col lg:col-span-1 border border-white/60 items-center">
                 <h3 className="font-bold text-gray-700 mb-4 text-center">戦略ポートフォリオ比較</h3>
-                <div className="flex justify-center"><RadarChart scenarios={result.scenarios} /></div>
-                
-                <div className="space-y-2 mb-4">
-                  {result.scenarios.map((s:any) => (
-                    <div key={s.id} className="flex items-center text-xs gap-2">
-                      <span className={`w-3 h-3 rounded-full ${s.colorCode==='red'?'bg-red-400':s.colorCode==='yellow'?'bg-yellow-400':s.colorCode==='blue'?'bg-blue-400':'bg-gray-400'}`}></span>
-                      <span className="font-bold">{s.id}</span>
-                      <span className="text-gray-500 truncate">{s.title}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {result.portfolioAnalysis && (
-                  <div className="bg-indigo-50/50 p-3 rounded border border-indigo-100">
-                    <span className="text-xs font-bold text-indigo-600 block mb-1">📊 PORTFOLIO ANALYSIS</span>
-                    <p className="text-xs text-gray-600 leading-relaxed">{result.portfolioAnalysis}</p>
-                  </div>
-                )}
-
+                <RadarChart scenarios={result.scenarios} />
               </div>
             </div>
 
@@ -1015,16 +805,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><Icons.Check /> Detailed Scenarios</h2>
               <div className="grid grid-cols-1 gap-6">
                 {result.scenarios.map((s:any) => (
-                  <ScenarioDetails 
-                    key={s.id} 
-                    scenario={s} 
-                    onGenerateImage={handleGenerateImage} 
-                    isImageLoading={loadingStates.images[s.id]} 
-                    playingScenarioId={playingScenarioId} 
-                    onSpeak={handleSpeak} 
-                    isAudioLoading={loadingStates.audios[s.id]} 
-                    audioUrl={s.audioUrl || audioCache[s.id]} 
-                  />
+                  <ScenarioDetails key={s.id} scenario={s} onGenerateImage={handleGenerateImage} isImageLoading={loadingStates.images[s.id]} playingScenarioId={playingScenarioId} onSpeak={handleSpeak} isAudioLoading={loadingStates.audios[s.id]} audioUrl={s.audioUrl || audioCache[s.id]} />
                 ))}
               </div>
             </div>
@@ -1032,7 +813,6 @@ export default function Home() {
         )}
       </main>
       
-      {/* Footer: 著作権表示 (定数利用) */}
       <footer className="w-full py-8 text-center text-gray-400 text-sm font-medium">
         {SYSTEM_CONFIG.COPYRIGHT}
       </footer>

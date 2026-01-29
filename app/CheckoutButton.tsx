@@ -61,7 +61,7 @@ export default function CheckoutButton() {
         border: "none", borderRadius: "4px", fontSize: "16px", cursor: "pointer", opacity: loading ? 0.7 : 1
       }}
     >
-      {loading ? "準備中..." : "Proプランにアップグレード (¥1,480)"}
+      {loading ? "準備中..." : "Proプランにアップグレード"}
     </button>
   );
 }
