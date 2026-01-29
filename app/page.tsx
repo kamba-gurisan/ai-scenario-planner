@@ -10,6 +10,7 @@ import {
   doc, setDoc, updateDoc, increment, getDoc, Timestamp 
 } from "firebase/firestore";
 import PptxGenJS from "pptxgenjs";
+import CheckoutButton from "./CheckoutButton";
 
 // =================================================================
 // ⚙️ SYSTEM CONFIGURATION (バージョン管理 & 著作権表示の親設定)
@@ -867,6 +868,9 @@ export default function Home() {
       )}
 
       <main className="max-w-5xl mx-auto px-4 pt-24">
+        <div className="mb-10 flex justify-center w-full">
+        <CheckoutButton />
+      </div>
         {!result ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <div className="max-w-2xl w-full text-center space-y-8">
