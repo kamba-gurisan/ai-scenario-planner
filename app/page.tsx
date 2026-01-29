@@ -1,43 +1,29 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { 
-  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User 
-} from "firebase/auth";
-import { 
-  getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, 
-  doc, setDoc, updateDoc, increment, getDoc, Timestamp 
-} from "firebase/firestore";
+// ✅ 共通のFirebase設定を読み込む（これが大事！）
+import { db, auth } from "../lib/firebase";
+
+// ✅ 必要な機能だけをインポート
+import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from "firebase/auth";
+import { collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, setDoc, updateDoc, increment, getDoc, Timestamp } from "firebase/firestore";
 import PptxGenJS from "pptxgenjs";
 import CheckoutButton from "./CheckoutButton";
 
-// =================================================================
-// ⚙️ SYSTEM CONFIGURATION (バージョン管理 & 著作権表示の親設定)
-// =================================================================
+// ==========================================
+// ⚙ SYSTEM CONFIGURATION
+// ==========================================
 const SYSTEM_CONFIG = {
   APP_NAME: "AI Scenario Planner",
   VERSION: "v.0.1.4",
   COPYRIGHT: "© 2026 GURISAN. All Rights Reserved"
 };
 
-// =================================================================
-// ⚠️ 重要: ここをあなたの本物の Firebase Config に書き換えてください！
-// =================================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyD4YzalqlL1wzzLB-zUTFwQCUTMNgyefWY",
-  authDomain: "ai-scenario-pro-2026.firebaseapp.com",
-  projectId: "ai-scenario-pro-2026",
-  storageBucket: "ai-scenario-pro-2026.firebasestorage.app",
-  messagingSenderId: "439423354212",
-  appId: "1:439423354212:web:62fc734dc452a03082e671"
-};
+// --------------------------------------------------------
+// 👇 これより下に `const PLAN_LIMITS = ...` があればOKです！
+// --------------------------------------------------------
 
-// Firebase初期化
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-
+// 👇 ここから下は元のコード（const PLAN_LIMITS ...）につながります
 // --- 💎 プラン定義と制限設定 ---
 const PLAN_LIMITS: any = {
   free: {
