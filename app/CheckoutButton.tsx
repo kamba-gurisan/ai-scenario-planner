@@ -24,7 +24,7 @@ export default function CheckoutButton() {
     try {
       // 1. Firestoreの 'users' コレクションに書き込む
       const docRef = await addDoc(
-        collection(db, "users", user.uid, "checkout_sessions"), 
+        collection(db, "customers", user.uid, "checkout_sessions"),
         {
           price: "price_1SuxSuBmI7NWOgZIPX8UxsSH", // あなたのID
           success_url: window.location.origin,
