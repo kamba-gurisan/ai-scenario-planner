@@ -15,7 +15,7 @@ import CheckoutButton from "./CheckoutButton";
 // ==========================================
 const SYSTEM_CONFIG = {
   APP_NAME: "AI Scenario Planner",
-  VERSION: "v.0.1.4",
+  VERSION: "v.0.1.5",
   COPYRIGHT: "© 2026 GURISAN. All Rights Reserved"
 };
 
