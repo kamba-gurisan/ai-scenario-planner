@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 // ✅ 共通のFirebase設定を読み込む
 import { db, auth } from "../lib/firebase";
 
@@ -28,7 +29,7 @@ const PLAN_LIMITS: any = {
     pptx: false
   },
   pro: {
-    scenarios: 100,
+    scenarios: Infinity, // 無制限
     images: 100,
     audios: 100,
     pptx: true
@@ -104,6 +105,8 @@ const Icons = {
   Presentation: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h20v14H2z"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg>,
   Lock: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>,
   Loader: () => <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>,
+  Help: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
+  Send: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>,
 };
 
 const PROMPTS = {
@@ -260,6 +263,15 @@ export default function Home() {
   }>({ images: {}, audios: {} });
 
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+
+  // --- Help Dialog States ---
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [helpMessages, setHelpMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([
+    { role: 'ai', text: 'お手伝いします。このアプリについて何か知りたいことはありますか？' }
+  ]);
+  const [helpInput, setHelpInput] = useState("");
+  const [isHelpLoading, setIsHelpLoading] = useState(false);
+  const helpEndRef = useRef<HTMLDivElement>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -712,6 +724,33 @@ export default function Home() {
     setResult(item.result); setAudioCache({}); setIsDetailsExpanded(false); setCurrentDocId(item.id); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleHelpSend = async () => {
+    if (!helpInput.trim() || isHelpLoading) return;
+    const userText = helpInput;
+    setHelpInput("");
+    setHelpMessages(prev => [...prev, { role: 'user', text: userText }]);
+    setIsHelpLoading(true);
+
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: 'help', text: userText, history: helpMessages }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setHelpMessages(prev => [...prev, { role: 'ai', text: data.text }]);
+    } catch (e: any) {
+      setHelpMessages(prev => [...prev, { role: 'ai', text: "すみません、エラーが発生しました。" }]);
+    } finally {
+      setIsHelpLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    helpEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [helpMessages, isHelpOpen]);
+
   return (
     <div className="min-h-screen pb-12 font-sans selection:bg-indigo-100 selection:text-indigo-800 text-gray-800 bg-[#f0f4f8]" style={{ backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
 
@@ -726,7 +765,15 @@ export default function Home() {
               {SYSTEM_CONFIG.APP_NAME} <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full font-normal">{SYSTEM_CONFIG.VERSION}</span>
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 text-gray-400">
+            <button
+              onClick={() => setIsHelpOpen(true)}
+              className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-indigo-500 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 sm:px-3 sm:py-2 rounded-lg transition border border-indigo-200"
+              title="ヘルプを表示"
+            >
+              <Icons.Help /> HELP
+            </button>
+            <div className="h-4 w-px bg-gray-200"></div>
             {result && (
               <>
                 <button onClick={() => {
@@ -770,7 +817,7 @@ export default function Home() {
                     {userData.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
                   </div>
                   <div className="text-[10px] text-gray-400">
-                    残り: {userData.plan === 'pro' ? '∞' : 3 - userData.usage.scenarios}回
+                    残り: {userData.plan === 'pro' && PLAN_LIMITS.pro.scenarios === Infinity ? '∞' : (PLAN_LIMITS[userData.plan].scenarios - userData.usage.scenarios)}回
                   </div>
                 </div>
 
@@ -957,6 +1004,87 @@ export default function Home() {
       <footer className="w-full py-8 text-center text-gray-400 text-sm font-medium">
         {SYSTEM_CONFIG.COPYRIGHT}
       </footer>
+
+      {/* Help Dialog */}
+      {isHelpOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[600px] border border-gray-200">
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white flex justify-between items-center shadow-md">
+              <div className="flex items-center gap-2">
+                <Icons.Help />
+                <span className="font-bold tracking-wider">AI ASSISTANT</span>
+              </div>
+              <button onClick={() => {
+                setIsHelpOpen(false);
+                setHelpMessages([{ role: 'ai', text: 'お手伝いします。このアプリについて何か知りたいことはありますか？' }]);
+              }} className="hover:bg-white/20 p-1 rounded-full transition">
+                <Icons.Close />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+              {helpMessages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${msg.role === 'user'
+                    ? 'bg-indigo-600 text-white rounded-tr-none'
+                    : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
+                    }`}>
+                    {msg.role === 'user' ? (
+                      msg.text
+                    ) : (
+                      <ReactMarkdown
+                        components={{
+                          p: ({ ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                          ul: ({ ...props }) => <ul className="list-disc ml-4 mb-2" {...props} />,
+                          ol: ({ ...props }) => <ol className="list-decimal ml-4 mb-2" {...props} />,
+                          li: ({ ...props }) => <li className="mb-1" {...props} />,
+                          strong: ({ ...props }) => <strong className="font-bold text-indigo-700" {...props} />,
+                          code: ({ ...props }) => <code className="bg-gray-100 px-1 rounded text-xs font-mono" {...props} />,
+                        }}
+                      >
+                        {msg.text}
+                      </ReactMarkdown>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {isHelpLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-2">
+                    <Icons.Loader />
+                    <span className="text-xs text-gray-500 font-medium">Thinking...</span>
+                  </div>
+                </div>
+              )}
+              <div ref={helpEndRef} />
+            </div>
+
+            <div className="p-4 bg-white border-t border-gray-100">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={helpInput}
+                  onChange={e => setHelpInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                      handleHelpSend();
+                    }
+                  }}
+                  placeholder="アプリについて質問する..."
+                  className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                />
+                <button
+                  onClick={handleHelpSend}
+                  disabled={isHelpLoading || !helpInput.trim()}
+                  className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition disabled:opacity-50 shadow-md"
+                >
+                  <Icons.Send />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

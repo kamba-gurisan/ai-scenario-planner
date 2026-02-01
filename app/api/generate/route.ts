@@ -173,6 +173,64 @@ export async function POST(request: Request) {
       return NextResponse.json({ summary: response.text() });
     }
 
+    // --- Mode 5: ヘルプ (APP HELP) ---
+    if (mode === 'help') {
+      const { history, text: userText } = body;
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
+        systemInstruction: `あなたは、この「AI Scenario Planner」というアプリケーションの専任テクニカルヘルプデスクです。
+        ユーザーからの質問に、簡潔かつ正確、そして丁寧に回答してください。
+
+        【アプリ概要】
+        AI Scenario Plannerは、不確実な未来を2つの軸で切り分け、4つのシナリオを生成・分析する戦略ツールです。
+
+        【技術仕様・内部構造】
+        ・認証: Firebase Authentication (Googleログイン)
+        ・データベース: Firebase Firestore
+          - 'users'コレクション: ユーザーのプラン(plan: 'free'/'pro')と利用回数(usage)を管理。
+          - 'scenarios'コレクション: 作成した各プロジェクトを保存。ユーザーID(userId)、テーマ(theme)、詳細(context)、生成結果(result/JSON)を記録。
+        ・AIモデル: 
+          - シナリオ生成/要約: Gemini 2.5 Flash
+          - 画像生成: Imagen 4.0 (imagen-4.0-generate-001)
+          - 音声生成(TTS): Gemini 2.5 Flash Preview TTS (voice: Aoede)
+        ・フロントエンド: Next.js (App Router), React, Tailwind CSS
+        ・PPTX出力: クライアントサイドライブラリ 'pptxgenjs' を使用。
+
+        【機能詳細】
+        1. シナリオ生成: 2軸 (X, Y) に基づく4シナリオ (Scenario A-D) を作成。
+        2. 戦略ポートフォリオ: 各シナリオのリソース配分（イノベーション、マーケティング等）を可視化。
+        3. 保存・読込: Firestoreへの自動保存、およびJSONファイルとしてのローカル保存/読込が可能。
+        4. PPTX: スライド形式（表紙、マトリクス、各詳細）でエクスポート可能。
+
+        【重要なルール】
+        ・履歴の保存先を聞かれたら、Firebase Firestoreの 'scenarios' コレクションであることや、JSONでの書き出しが可能であることを説明してください。
+        ・アプリに関係のない質問には、「このアプリについての質問のみお答えできます」と回答してください。
+        ・回答は日本語で、マークダウン形式を使用して読みやすく装飾してください。`
+      });
+
+      // 履歴がある場合は、GeminiのChatSession形式に変換
+      // 注意: startChatのhistoryは、最初のメッセージが 'user' である必要があります。
+      // 初期メッセージ「お手伝いします」が role: 'ai' で含まれているとエラーになるため、
+      // 最初の 'user' 以降のメッセージのみを履歴として抽出します。
+      const formattedHistory = (history || [])
+        .map((m: any) => ({
+          role: m.role === 'ai' ? 'model' : 'user',
+          parts: [{ text: m.text }]
+        }));
+
+      // 最初の 'user' メッセージのインデックスを探す
+      const firstUserIndex = formattedHistory.findIndex((m: any) => m.role === 'user');
+      const filteredHistory = firstUserIndex !== -1 ? formattedHistory.slice(firstUserIndex) : [];
+
+      const chat = model.startChat({
+        history: filteredHistory
+      });
+
+      const result = await chat.sendMessage(userText);
+      const response = await result.response;
+      return NextResponse.json({ text: response.text() });
+    }
+
     return NextResponse.json({ error: "Invalid mode" }, { status: 400 });
 
   } catch (error: any) {
