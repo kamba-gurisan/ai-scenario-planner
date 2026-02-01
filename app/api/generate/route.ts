@@ -22,8 +22,8 @@ export async function POST(request: Request) {
       4. **ポートフォリオ分析**: 各シナリオで求められる「理想的なリソース配分」を比較分析。
 
       ## ★重要: マトリクス定義 (厳守)
-      - **X軸**: 左 = Min, 右 = Max
-      - **Y軸**: 下 = Min, 上 = Max
+      - **X軸**: 左 = Min, 右 = Max (※Min/Maxのラベルは、**10文字以内の短く分かりやすいキーワード**にすること)
+      - **Y軸**: 下 = Min, 上 = Max (※Min/Maxのラベルは、**10文字以内の短く分かりやすいキーワード**にすること)
       - **Scenario A (左上)**: [X=Min, Y=Max]
       - **Scenario B (右上)**: [X=Max, Y=Max]
       - **Scenario C (左下)**: [X=Min, Y=Min]
@@ -39,38 +39,38 @@ export async function POST(request: Request) {
       - 内容は、その環境下で懸命に生き、知恵とテクノロジーで未来を切り開く**「人間賛歌」**のトーンにすること。
       - **文字数: 日本語で600文字程度（厳守）。**
 
-      ### 2. 【Insight & Action】フィールド: "高校生でもわかる論理的解説"
+      ### 2. 【Insight & Action】フィールド: "高校生でもわかる論理的解説" (★必須★)
       - ここは**「物語」ではありません**が、専門用語ばかりの難解なレポートも禁止です。
       - **ターゲット**: **「高校生」に向けて、ビジネスの仕組みや戦略をわかりやすく解説するつもりで書いてください。**
       - **文体**: 「〜です/ます」調。専門用語は噛み砕いて説明すること。
-      - **各項目の定義**:
+      - **各項目の定義 (すべて必須、省略禁止)**:
          - **context**: 市場環境の概況。**（重要: カード表示用に100文字程度に短く要約すること）**
          - **issue**: 企業が直面する構造的な経営課題。
-         - **breakthrough (BUSINESS INSIGHT)**: 
+         - **breakthrough (BUSINESS INSIGHT)** [★必須★]: 
              - なぜその解決策がビジネスとして成り立つのか？ 従来と何が違うのか？
-             - **300文字程度**で、論理的かつ丁寧に解説してください。
-         - **actionAdvice (ACTION)**:
+             - **300文字程度**で、論理的かつ丁寧に解説してください。**空欄・省略禁止。**
+         - **actionAdvice (ACTION)** [★必須★]:
              - 企業や個人は具体的にどう動くべきか？ 成功の鍵は何か？
-             - **300文字程度**で、具体的なアクションを提案してください。
+             - **300文字程度**で、具体的なアクションを提案してください。**空欄・省略禁止。**
       
-      ### 3. 【Early Signs】フィールド
-      - 現在すでに起きている、または起き始めている「未来の兆候」を**必ず3つ**挙げてください。
+      ### 3. 【Early Signs】フィールド (★必須★)
+      - 現在すでに起きている、または起き始めている「未来の兆候」を**必ず3つ**挙げてください。**空欄・省略禁止。**
 
       ### 4. 【Allocation & Portfolio Analysis】フィールド (戦略リソース配分)
       - **allocation**: そのシナリオが現実になった際、**「企業が成功するためにとるべき理想的なリソース配分（戦略）」**を5段階で示してください。
-      - **portfolioAnalysis**: 4つのシナリオそれぞれの「理想的な戦略（配分）」を見比べ、**共通して投資すべき分野や、シナリオによって判断が分かれる戦略的ポイント**を、100文字程度の日本語で特徴的に解説してください。
+      - **portfolioAnalysis**: 4つのシナリオそれぞれの「理想的な戦略（配分）」を見比べ、**共通して投資すべき分野や、シナリオによって判断が分かれる戦略的ポイント**を、300文字程度の日本語で特徴的に解説してください。
 
       ## 出力JSONフォーマット (厳守)
       {
           "axisX": { "label": "...", "min": "...", "max": "..." },
           "axisY": { "label": "...", "min": "...", "max": "..." },
           "rationale": "...",
-          "portfolioAnalysis": "4つの戦略配分全体の特徴や違いについての分析コメント(100文字程度)",
+          "portfolioAnalysis": "4つの戦略配分全体の特徴や違いについての分析コメント(300文字程度)",
           "scenarios": [
               { 
                   "id": "Scenario A", 
                   "title": "...", 
-                  "headline": "...", 
+                  "headline": "シナリオの概要説明(100文字程度、厳守)...", 
                   "insight": {
                     "context": "市場環境の概況(100文字程度)...",
                     "issue": "...",
@@ -105,8 +105,8 @@ export async function POST(request: Request) {
         systemInstructionText += `Thinking Axis Y: Label=${yLabel}, Min=${yMin}, Max=${yMax}\n`;
       }
 
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.5-flash", 
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
         systemInstruction: systemInstructionText,
         generationConfig: { responseMimeType: "application/json" }
       });
@@ -167,7 +167,7 @@ export async function POST(request: Request) {
       ・純粋な要約テキストのみを出力してください。
       
       テキスト:\n${text}`;
-      
+
       const result = await model.generateContent(promptText);
       const response = await result.response;
       return NextResponse.json({ summary: response.text() });

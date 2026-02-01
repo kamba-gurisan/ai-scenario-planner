@@ -15,7 +15,7 @@ import CheckoutButton from "./CheckoutButton";
 // ==========================================
 const SYSTEM_CONFIG = {
   APP_NAME: "AI Scenario Planner",
-  VERSION: "v.0.1.5",
+  VERSION: "v.0.1.6",
   COPYRIGHT: "© 2026 GURISAN. All Rights Reserved"
 };
 
@@ -75,8 +75,8 @@ const pcmToWav = (base64Pcm: string, sampleRate = 24000) => {
   writeString(viewWav, 8, 'WAVE');
   writeString(viewWav, 12, 'fmt ');
   viewWav.setUint32(16, 16, true);
-  viewWav.setUint16(20, 1, true); 
-  viewWav.setUint16(22, 1, true); 
+  viewWav.setUint16(20, 1, true);
+  viewWav.setUint16(22, 1, true);
   viewWav.setUint32(24, sampleRate, true);
   viewWav.setUint32(28, sampleRate * 2, true);
   viewWav.setUint16(32, 2, true);
@@ -90,16 +90,16 @@ const pcmToWav = (base64Pcm: string, sampleRate = 24000) => {
 
 // --- アイコン ---
 const Icons = {
-  Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-1.4 4.5 4.5 0 0 1-3 1.4"/><path d="M12 8v10"/></svg>,
-  Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
-  Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6"/><path d="M2.5 22v-6h6"/><path d="M2 11.5a10 10 0 0 1 18.8-4.3L21.5 8"/><path d="M22 12.5a10 10 0 0 1-18.8 4.2L2.5 16"/></svg>,
-  Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  Brain: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" /><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" /><path d="M15 13a4.5 4.5 0 0 1-3-1.4 4.5 4.5 0 0 1-3 1.4" /><path d="M12 8v10" /></svg>,
+  Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>,
+  Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6" /><path d="M2.5 22v-6h6" /><path d="M2 11.5a10 10 0 0 1 18.8-4.3L21.5 8" /><path d="M22 12.5a10 10 0 0 1-18.8 4.2L2.5 16" /></svg>,
+  Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
+  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>,
   Speaker: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>,
   Stop: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
-  Download: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-  Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
-  Save: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+  Download: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>,
+  Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>,
+  Save: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>,
   Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
   Presentation: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h20v14H2z"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg>,
   Lock: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>,
@@ -107,12 +107,13 @@ const Icons = {
 };
 
 const PROMPTS = {
-  IMAGE_GENERATION: (imgPrompt: string) => 
+  IMAGE_GENERATION: (imgPrompt: string) =>
     `A breathtaking cinematic film still from a movie, dramatic lighting, atmospheric, highly detailed, wide angle shot, realistic texture, ar 16:9, 2k resolution. ${imgPrompt}. No text, no words.`
 };
 
 const RadarChart = ({ scenarios }: any) => {
-  const size = 200, center = size/2, radius = 80;
+  if (!scenarios || !Array.isArray(scenarios)) return null;
+  const size = 200, center = size / 2, radius = 80;
   const getPoint = (val: number, i: number, total: number) => {
     const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
     const r = (val / 5) * radius;
@@ -120,41 +121,55 @@ const RadarChart = ({ scenarios }: any) => {
   };
   const labels = ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"];
   const colors: any = { red: 'rgba(239,68,68,0.3)', yellow: 'rgba(234,179,8,0.3)', gray: 'rgba(107,114,128,0.3)', blue: 'rgba(59,130,246,0.3)' };
-  
+
   return (
-    <div className="relative flex justify-center py-4">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
-        {[1, 2, 3, 4, 5].map(r => (
-          <polygon key={r} points={labels.map((_, i) => getPoint(r, i, 5)).join(' ')} fill="none" stroke="#e2e8f0" strokeWidth="1" />
-        ))}
+    <div className="flex flex-col items-center w-full">
+      <div className="relative flex justify-center py-4">
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
+          {[1, 2, 3, 4, 5].map(r => (
+            <polygon key={r} points={labels.map((_, i) => getPoint(r, i, 5)).join(' ')} fill="none" stroke="#e2e8f0" strokeWidth="1" />
+          ))}
+          {scenarios.map((s: any) => (
+            <polygon key={s.id} points={s.allocation.map((a: any, i: number) => getPoint(a.val, i, 5)).join(' ')} fill={colors[s.colorCode]} stroke={colors[s.colorCode].replace('0.3', '1')} strokeWidth="2" />
+          ))}
+          {labels.map((l, i) => {
+            const [x, y] = getPoint(6, i, 5).split(',');
+            return <text key={i} x={x} y={y} textAnchor="middle" fontSize="10" className="fill-gray-500 font-bold" dominantBaseline="middle">{l}</text>;
+          })}
+        </svg>
+      </div>
+
+      {/* 凡例 / Legend */}
+      <div className="flex flex-col gap-2 mt-2 px-4 mb-4 w-full">
         {scenarios.map((s: any) => (
-          <polygon key={s.id} points={s.allocation.map((a: any, i: number) => getPoint(a.val, i, 5)).join(' ')} fill={colors[s.colorCode]} stroke={colors[s.colorCode].replace('0.3','1')} strokeWidth="2" />
+          <div key={s.id} className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full flex-shrink-0 ${s.colorCode === 'red' ? 'bg-red-500' :
+              s.colorCode === 'blue' ? 'bg-blue-500' :
+                s.colorCode === 'yellow' ? 'bg-yellow-500' : 'bg-gray-500'
+              }`}></div>
+            <span className="text-[10px] font-bold text-gray-600">{s.id}: {s.title}</span>
+          </div>
         ))}
-        {labels.map((l, i) => {
-          const [x, y] = getPoint(6, i, 5).split(',');
-          return <text key={i} x={x} y={y} textAnchor="middle" fontSize="10" className="fill-gray-500 font-bold" dominantBaseline="middle">{l}</text>;
-        })}
-      </svg>
+      </div>
     </div>
   );
 };
 
 const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingScenarioId, onSpeak, isAudioLoading, audioUrl }: any) => {
   const isPlaying = playingScenarioId === scenario.id;
-  
+
   return (
-    <div className={`p-6 rounded-xl border-l-4 ${
-      scenario.colorCode === 'red' ? 'border-red-500 bg-red-50/50' : 
-      scenario.colorCode === 'blue' ? 'border-blue-500 bg-blue-50/50' : 
-      scenario.colorCode === 'yellow' ? 'border-yellow-400 bg-yellow-50/50' : 'border-gray-500 bg-gray-50/50'
-    } mb-6`}>
+    <div className={`p-6 rounded-xl border-l-4 ${scenario.colorCode === 'red' ? 'border-red-500 bg-red-50/50' :
+      scenario.colorCode === 'blue' ? 'border-blue-500 bg-blue-50/50' :
+        scenario.colorCode === 'yellow' ? 'border-yellow-400 bg-yellow-50/50' : 'border-gray-500 bg-gray-50/50'
+      } mb-6`}>
       <div className="flex flex-col md:flex-row justify-between items-start mb-6 gap-4">
         <div className="flex-1">
           <span className="text-xs font-bold uppercase tracking-wider opacity-60">{scenario.id} ({scenario.probability}%)</span>
           <h3 className="text-2xl font-bold text-gray-900 mt-1 mb-2">{scenario.title}</h3>
           <p className="text-sm font-bold text-gray-600 leading-relaxed">{scenario.headline}</p>
         </div>
-        
+
         {scenario.imageUrl ? (
           <div className="w-full md:w-72 aspect-video rounded-lg overflow-hidden shadow-md shrink-0 border border-gray-200 bg-gray-100 relative group">
             <img src={scenario.imageUrl} alt={scenario.title} className="w-full h-full object-cover hover:scale-105 transition duration-700" />
@@ -172,28 +187,28 @@ const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingSce
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        
+
         {/* 左側: ビジネスインサイト・アクション・兆候 */}
         <div className="text-sm space-y-3">
           <div className="bg-indigo-50/50 p-3 rounded border border-indigo-100">
             <span className="font-bold text-xs text-indigo-600 block mb-1">💡 BUSINESS INSIGHT</span>
-            {scenario.insight.breakthrough}
+            {scenario.insight?.breakthrough || "インサイト情報が生成されていません。再生成をお試しください。"}
           </div>
           <div>
             <span className="font-bold text-xs text-green-600 block">✅ ACTION</span>
-            <p className="text-gray-700">{scenario.actionAdvice}</p>
+            <p className="text-gray-700">{scenario.actionAdvice || "アクション情報が生成されていません。再生成をお試しください。"}</p>
           </div>
           <div>
             <span className="font-bold text-xs text-orange-600 block">📡 EARLY SIGNS</span>
             <ul className="list-disc list-inside text-gray-600 text-xs pl-1">
-              {scenario.earlySigns.map((s:string, i:number) => <li key={i}>{s}</li>)}
+              {(scenario.earlySigns && scenario.earlySigns.length > 0) ? scenario.earlySigns.map((s: string, i: number) => <li key={i}>{s}</li>) : <li>予兆情報が生成されていません。</li>}
             </ul>
           </div>
         </div>
 
         {/* 右側: ストーリー・音声操作 */}
         <div className="text-sm space-y-3">
-          <div className="bg-white/60 p-4 rounded-lg relative h-full"> 
+          <div className="bg-white/60 p-4 rounded-lg relative h-full">
             <div className="flex justify-between items-center mb-2">
               <p className="font-bold text-xs text-gray-500">STORY</p>
               <div className="flex gap-1 items-center">
@@ -219,32 +234,33 @@ const ScenarioDetails = ({ scenario, onGenerateImage, isImageLoading, playingSce
   );
 };
 
+
 export default function Home() {
   const [theme, setTheme] = useState("");
   const [details, setDetails] = useState("");
   const [isCustomAxesMode, setIsCustomAxesMode] = useState(false);
   const [customAxes, setCustomAxes] = useState({ x: { label: '', min: '', max: '' }, y: { label: '', min: '', max: '' } });
-  
+
   const [result, setResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<any>({ plan: 'free', usage: { scenarios: 0, images: 0, audios: 0 } });
-  
+
   const [history, setHistory] = useState<any[]>([]);
-  
+
   const [audioCache, setAudioCache] = useState<any>({});
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [playingScenarioId, setPlayingScenarioId] = useState<string | null>(null);
-  
+
   const [loadingStates, setLoadingStates] = useState<{
     images: Record<string, boolean>;
     audios: Record<string, boolean>;
   }>({ images: {}, audios: {} });
 
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
-  
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -305,7 +321,7 @@ export default function Home() {
     if (!user) return false;
     const plan = userData.plan || 'free';
     const limit = PLAN_LIMITS[plan][type];
-    
+
     if (typeof limit === 'boolean') {
       if (!limit) {
         alert("🔒 この機能はProプラン限定です。\nアップグレードして利用してください。");
@@ -366,7 +382,7 @@ export default function Home() {
 
       if (user) {
         await incrementUsage('scenarios');
-        
+
         const docRef = await addDoc(collection(db, "scenarios"), {
           userId: user.uid,
           theme,
@@ -396,9 +412,9 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: 'image', prompt }),
       });
-      
+
       const data = await res.json();
-      
+
       if (data.error) {
         if (data.error.includes("429") || data.error.includes("Quota")) {
           throw new Error("⚠️ AIサービスの1日の利用上限に達しました。\n(Google API Limit)\n\nしばらく待つか、明日再度お試しください。");
@@ -445,9 +461,9 @@ export default function Home() {
 
     try {
       setAudioLoading(scenario.id, true);
-      
-      const textToSpeak = scenario.audioTone 
-        ? `${scenario.audioTone.replace(/:$/, '')}, but maintain a moderate and steady speaking pace: ${scenario.story}` 
+
+      const textToSpeak = scenario.audioTone
+        ? `${scenario.audioTone.replace(/:$/, '')}, but maintain a moderate and steady speaking pace: ${scenario.story}`
         : `Speak in a clear tone at a moderate and steady speaking pace: ${scenario.story}`;
 
       const res = await fetch("/api/generate", {
@@ -462,7 +478,7 @@ export default function Home() {
 
       const blob = pcmToWav(data.audioData);
       const url = URL.createObjectURL(blob);
-      
+
       setResult((prev: any) => ({
         ...prev,
         scenarios: prev.scenarios.map((s: any) => s.id === scenario.id ? { ...s, audioUrl: url } : s)
@@ -514,7 +530,7 @@ export default function Home() {
       slide.addText(SYSTEM_CONFIG.APP_NAME, { x: 0.5, y: 1.5, w: 9, fontSize: 14, color: LAYOUT.COLOR.ACCENT, bold: true, align: "center", charSpacing: 3, ...JP_FONT });
       slide.addText(theme, { x: 0.5, y: 2.0, w: 9, fontSize: 36, color: LAYOUT.COLOR.MAIN, bold: true, align: "center", fontFace: "Meiryo UI", shrinkText: true });
       if (summaryDetails) {
-        slide.addShape(pres.ShapeType.rect, { x: 1.5, y: 3.2, w: 7, h: 1.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: 0.05, shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } } as any); 
+        slide.addShape(pres.ShapeType.rect, { x: 1.5, y: 3.2, w: 7, h: 1.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: 0.05, shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } } as any);
         slide.addText("前提条件 / コンテキスト", { x: 1.7, y: 3.4, w: 6.6, fontSize: 10, color: LAYOUT.COLOR.SUB, bold: true, ...JP_FONT });
         slide.addText(summaryDetails, { x: 1.7, y: 3.7, w: 6.6, h: 1.1, fontSize: 11, color: LAYOUT.COLOR.MAIN, align: "left", valign: "top", lineSpacing: 18, shrinkText: true, ...JP_FONT });
       }
@@ -524,7 +540,7 @@ export default function Home() {
       // 2. マトリクス
       slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
-      slide.addText("不確実性マトリクス", { x: 0.4, y: 0.3, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
+      slide.addText("シナリオマトリクス", { x: 0.4, y: 0.3, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
       const chartX = 1.2, chartY = 1.0, chartW = 8.2, chartH = 4.0;
       const centerX = chartX + chartW / 2;
       const centerY = chartY + chartH / 2;
@@ -533,7 +549,7 @@ export default function Home() {
       slide.addShape(pres.ShapeType.line, { x: centerX, y: chartY, w: 0, h: chartH, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
       slide.addShape(pres.ShapeType.line, { x: chartX, y: centerY, w: chartW, h: 0, line: { color: "E2E8F0", width: 1, dashType: "dash" } });
       const valStyle = { fontSize: 10, color: LAYOUT.COLOR.ACCENT, bold: true, ...JP_FONT };
-      slide.addText(result.axisY.label, { x: 0.3, y: chartY, w: 0.6, h: chartH, fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true, align: "center", valign: "middle", vert: "vert270", ...JP_FONT } as any); 
+      slide.addText(result.axisY.label, { x: 0.3, y: chartY, w: 0.6, h: chartH, fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true, align: "center", valign: "middle", vert: "vert270", ...JP_FONT } as any);
       slide.addText(result.axisY.max, { x: chartX - 2.0, y: chartY - 0.15, w: 1.9, align: "right", ...valStyle });
       slide.addText(result.axisY.min, { x: chartX - 2.0, y: chartY + chartH - 0.15, w: 1.9, align: "right", ...valStyle });
       slide.addText(result.axisX.label, { x: centerX - 2.0, y: chartY + chartH + 0.4, w: 4.0, align: "center", fontSize: 12, color: LAYOUT.COLOR.MAIN, bold: true, ...JP_FONT });
@@ -542,8 +558,8 @@ export default function Home() {
 
       const cardW = 3.9, cardH = 1.8, cardPaddingX = 0.15, cardPaddingY = 0.15;
       const drawCard = (posId: string, x: number, y: number) => {
-        const s = result.scenarios.find((sc:any) => sc.id.includes(posId));
-        if(!s) return;
+        const s = result.scenarios.find((sc: any) => sc.id.includes(posId));
+        if (!s) return;
         const style = SCENARIO_STYLES[posId] || SCENARIO_STYLES.C;
         slide.addShape(pres.ShapeType.rect, { x: x, y: y, w: cardW, h: cardH, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: 0.05, shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } } as any);
         slide.addShape(pres.ShapeType.rect, { x: x, y: y, w: cardW, h: 0.08, fill: { color: style.color }, rectRadius: 0.02 } as any);
@@ -557,6 +573,42 @@ export default function Home() {
       drawCard("C", centerX - cardW - cardPaddingX, centerY + cardPaddingY);
       drawCard("D", centerX + cardPaddingX, centerY + cardPaddingY);
       slide.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
+
+      // 3. 戦略ポートフォリオ比較 (Combined Radar & Analysis)
+      let pPortfolio = pres.addSlide();
+      pPortfolio.background = { color: LAYOUT.COLOR.BG };
+      pPortfolio.addText("戦略ポートフォリオ比較", { x: 0.4, y: 0.3, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
+
+      // Combined Radar Chart
+      const combinedChartData = result.scenarios.map((s: any) => ({
+        name: s.id,
+        labels: ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"],
+        values: s.allocation.map((a: any) => a.val)
+      }));
+      // Assign custom colors based on scenario ID
+      const radarColors = result.scenarios.map((s: any) =>
+        s.colorCode === 'red' ? "EF4444" :
+          s.colorCode === 'blue' ? "3B82F6" :
+            s.colorCode === 'yellow' ? "EAB308" : "6B7280"
+      );
+
+      pPortfolio.addChart(pres.ChartType.radar, combinedChartData, {
+        x: 0.5, y: 1.2, w: 4.5, h: 4.0,
+        radarStyle: "marker",
+        chartColors: radarColors,
+        chartColorsOpacity: 25,
+        catAxisLabelFontSize: 8,
+        catAxisLabelColor: "64748B",
+        catAxisLabelFontFace: "Meiryo UI",
+        legend: { x: 0.5, y: 5.2, fontSize: 8, color: "475569" }
+      } as any);
+
+      // Portfolio Analysis Text
+      pPortfolio.addShape(pres.ShapeType.rect, { x: 5.2, y: 1.2, w: 4.4, h: 3.8, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+      pPortfolio.addText("📊 戦略ポートフォリオ分析", { x: 5.4, y: 1.4, fontSize: 11, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
+      pPortfolio.addText(result.portfolioAnalysis || "No analysis data.", { x: 5.4, y: 1.8, w: 4.0, h: 3.0, fontSize: 10, color: "374151", align: "justify", valign: "top", lineSpacing: 16, shrinkText: true, ...JP_FONT });
+
+      pPortfolio.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
 
       // 3. 各シナリオ詳細
       for (const s of result.scenarios) {
@@ -572,7 +624,15 @@ export default function Home() {
         if (s.imageUrl && s.imageUrl.startsWith("data:image")) { p1.addImage({ data: s.imageUrl, x: 0.8, y: 1.6, w: 2.8, h: 1.58 }); }
         p1.addText(s.headline, { x: 3.8, y: 1.6, w: 5.4, h: 1.5, fontSize: 16, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true, ...JP_FONT });
         p1.addText("STORY", { x: 0.8, y: 3.3, fontSize: 10, bold: true, color: "94A3B8" });
-        p1.addText(s.story, { x: 0.8, y: 3.5, w: 8.4, h: 1.6, fontSize: 11, color: "374151", align: "justify", valign: "top", shrinkText: true, lineSpacing: 15, ...JP_FONT });
+        p1.addText(s.story, { x: 0.8, y: 3.5, w: 8.4, h: 1.6, fontSize: 9, color: "374151", align: "justify", valign: "top", shrinkText: false, lineSpacing: 14, ...JP_FONT });
+        if (s.audioUrl) {
+          try {
+            const audioB64 = await urlToBase64(s.audioUrl);
+            p1.addMedia({ data: `data:audio/wav;base64,${audioB64}`, x: 3.7, y: 2.7, w: 0.5, h: 0.5, type: "audio" });
+          } catch (e) {
+            console.error("Audio embed failed", e);
+          }
+        }
         p1.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
 
         const p2 = pres.addSlide();
@@ -582,8 +642,24 @@ export default function Home() {
         p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.0, w: 3.5, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         const chartData = [{ name: s.title, labels: ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"], values: s.allocation.map((a: any) => a.val) }];
         p2.addChart(pres.ChartType.radar, chartData, { x: 0.6, y: 1.5, w: 3.3, h: 3.3, radarStyle: "marker", chartColors: [style.color], chartColorsOpacity: 40, valAxisHidden: true, legend: { show: false }, catAxisLabelFontSize: 9, catAxisLabelColor: "64748B", catAxisLabelFontFace: "Meiryo UI" } as any);
-        p2.addText("BUSINESS INSIGHT", { x: 4.4, y: 1.1, fontSize: 9, bold: true, color: LAYOUT.COLOR.ACCENT });
-        p2.addText(s.insight.breakthrough, { x: 4.4, y: 1.3, w: 5.1, fontSize: 10, color: "1F2937", ...JP_FONT });
+
+        const layoutY = { insight: 1.1, action: 2.6, signs: 4.1 };
+        const contentX = 4.4;
+        const colW = 5.2;
+
+        // BUSINESS INSIGHT
+        p2.addText("BUSINESS INSIGHT", { x: contentX, y: layoutY.insight, fontSize: 10, bold: true, color: LAYOUT.COLOR.ACCENT });
+        p2.addText(s.insight.breakthrough, { x: contentX, y: layoutY.insight + 0.25, w: colW, h: 1.1, fontSize: 10, color: "1F2937", valign: "top", shrinkText: true, ...JP_FONT });
+
+        // ACTION
+        p2.addText("ACTION", { x: contentX, y: layoutY.action, fontSize: 10, bold: true, color: LAYOUT.COLOR.ACCENT });
+        p2.addText(s.actionAdvice, { x: contentX, y: layoutY.action + 0.25, w: colW, h: 1.1, fontSize: 10, color: "1F2937", valign: "top", shrinkText: true, ...JP_FONT });
+
+        // EARLY SIGNS
+        p2.addText("EARLY SIGNS (予兆)", { x: contentX, y: layoutY.signs, fontSize: 10, bold: true, color: LAYOUT.COLOR.ACCENT });
+        const signsText = s.earlySigns.map((sign: string) => `• ${sign}`).join("\n");
+        p2.addText(signsText, { x: contentX, y: layoutY.signs + 0.25, w: colW, h: 1.0, fontSize: 10, color: "4B5563", valign: "top", shrinkText: true, lineSpacing: 14, ...JP_FONT });
+
         p2.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
       }
       pres.writeFile({ fileName: `${theme.replace(/\s+/g, '_')}_ScenarioReport.pptx` });
@@ -638,7 +714,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen pb-12 font-sans selection:bg-indigo-100 selection:text-indigo-800 text-gray-800 bg-[#f0f4f8]" style={{ backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
-      
+
       <input type="file" ref={fileInputRef} onChange={handleLoadProject} className="hidden" accept=".json" />
 
       {/* Header */}
@@ -653,7 +729,16 @@ export default function Home() {
           <div className="flex items-center gap-3">
             {result && (
               <>
-                <button onClick={() => setResult(null)} className="flex items-center gap-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition" title="新しい分析を始める">
+                <button onClick={() => {
+                  if (result?.axisX && result?.axisY) {
+                    setCustomAxes({
+                      x: { label: result.axisX.label || '', min: result.axisX.min || '', max: result.axisX.max || '' },
+                      y: { label: result.axisY.label || '', min: result.axisY.min || '', max: result.axisY.max || '' }
+                    });
+                    setIsCustomAxesMode(true);
+                  }
+                  setResult(null);
+                }} className="flex items-center gap-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition" title="新しい分析を始める">
                   <Icons.Plus /> 新規
                 </button>
 
@@ -668,27 +753,27 @@ export default function Home() {
                 )}
               </>
             )}
-            
+
             <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition" title="ファイルを開く">
               <Icons.Upload /> 読込
             </button>
             <button onClick={handleSaveProject} disabled={!result} className={`flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition ${!result ? 'opacity-50 cursor-not-allowed' : ''}`} title="プロジェクトを保存">
               <Icons.Save /> 保存
             </button>
-            
+
             <div className="h-6 w-px bg-gray-300 mx-1"></div>
 
             {user ? (
               <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                  <div className={`text-xs font-bold ${userData.plan==='pro' ? 'text-indigo-600':'text-gray-500'}`}>
+                  <div className={`text-xs font-bold ${userData.plan === 'pro' ? 'text-indigo-600' : 'text-gray-500'}`}>
                     {userData.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
                   </div>
                   <div className="text-[10px] text-gray-400">
-                    残り: {userData.plan==='pro' ? '∞' : 3 - userData.usage.scenarios}回
+                    残り: {userData.plan === 'pro' ? '∞' : 3 - userData.usage.scenarios}回
                   </div>
                 </div>
-                
+
                 {/* 🚀 アップグレードボタンを追加 (Free Planの場合のみ) */}
                 {userData.plan !== 'pro' && (
                   <div className="scale-75 origin-right">
@@ -727,6 +812,41 @@ export default function Home() {
                   <label className="block text-sm font-bold text-gray-700 mb-2">詳細コンテキスト</label>
                   <textarea value={details} onChange={e => setDetails(e.target.value)} placeholder="前提条件や課題など..." className="w-full p-4 bg-white/50 border border-gray-200 rounded-xl h-24" />
                 </div>
+
+                {/* Optional Axis Settings */}
+                <div className="border-t border-gray-200 pt-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={isCustomAxesMode} onChange={e => setIsCustomAxesMode(e.target.checked)} className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" />
+                    <span className="text-sm font-bold text-gray-600">軸設定（オプション）</span>
+                  </label>
+
+                  {isCustomAxesMode && (
+                    <div className="mt-4 space-y-4 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                      <p className="text-xs text-gray-500">空欄の項目はAIが自動的に決定します。</p>
+
+                      {/* X軸 (横軸) */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-600 mb-2">X軸（横軸）</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <input type="text" value={customAxes.x.min} onChange={e => setCustomAxes({ ...customAxes, x: { ...customAxes.x, min: e.target.value } })} placeholder="← 左端" className="p-2 text-sm bg-white border border-gray-200 rounded-lg text-center" />
+                          <input type="text" value={customAxes.x.label} onChange={e => setCustomAxes({ ...customAxes, x: { ...customAxes.x, label: e.target.value } })} placeholder="軸の項目名" className="p-2 text-sm bg-indigo-50 border border-indigo-200 rounded-lg text-center font-bold" />
+                          <input type="text" value={customAxes.x.max} onChange={e => setCustomAxes({ ...customAxes, x: { ...customAxes.x, max: e.target.value } })} placeholder="右端 →" className="p-2 text-sm bg-white border border-gray-200 rounded-lg text-center" />
+                        </div>
+                      </div>
+
+                      {/* Y軸 (縦軸) */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-600 mb-2">Y軸（縦軸）</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <input type="text" value={customAxes.y.min} onChange={e => setCustomAxes({ ...customAxes, y: { ...customAxes.y, min: e.target.value } })} placeholder="↓ 下端" className="p-2 text-sm bg-white border border-gray-200 rounded-lg text-center" />
+                          <input type="text" value={customAxes.y.label} onChange={e => setCustomAxes({ ...customAxes, y: { ...customAxes.y, label: e.target.value } })} placeholder="軸の項目名" className="p-2 text-sm bg-indigo-50 border border-indigo-200 rounded-lg text-center font-bold" />
+                          <input type="text" value={customAxes.y.max} onChange={e => setCustomAxes({ ...customAxes, y: { ...customAxes.y, max: e.target.value } })} placeholder="上端 ↑" className="p-2 text-sm bg-white border border-gray-200 rounded-lg text-center" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <button onClick={generateScenarios} disabled={!theme.trim() || !user} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2">
                   <Icons.Brain /> {user ? "分析・シナリオ生成" : "ログインしてください"}
                 </button>
@@ -748,8 +868,8 @@ export default function Home() {
           </div>
         ) : (
           <div className="space-y-8 pb-12 animate-fade-in">
-             {/* 分析結果エリア */}
-             <div className="text-center space-y-2 border-b border-gray-200 pb-6 mb-8">
+            {/* 分析結果エリア */}
+            <div className="text-center space-y-2 border-b border-gray-200 pb-6 mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{theme}</h1>
               <div className="max-w-2xl mx-auto mt-4 text-left">
                 <div className={`text-gray-500 text-sm bg-white/50 border border-gray-100 p-4 rounded-xl transition-all duration-300 ${isDetailsExpanded ? '' : 'max-h-24 overflow-hidden relative'}`}>
@@ -762,9 +882,14 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm relative lg:col-span-2 border border-white/60">
-                <div className="grid grid-cols-[50px_1fr] h-full gap-2 pt-6">
+            <div className="grid grid-cols-1 gap-8">
+              <div className="bg-white/80 backdrop-blur-md p-6 pb-20 rounded-2xl shadow-sm relative border border-white/60">
+                <div className="flex justify-center mb-4">
+                  <h3 className="font-bold text-base text-white px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full shadow-md">
+                    シナリオマトリクス
+                  </h3>
+                </div>
+                <div className="grid grid-cols-[50px_1fr] h-full gap-2 pt-2">
                   <div className="flex flex-col items-center justify-between py-4 h-full">
                     <div className="text-xs font-bold text-gray-500">{result.axisY.max}</div>
                     <div className="flex-1 w-full flex flex-col items-center justify-center my-2 relative">
@@ -775,14 +900,14 @@ export default function Home() {
                   </div>
                   <div className="flex flex-col h-full">
                     <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-4 relative z-10 h-[500px]">
-                      {result.scenarios.map((s:any) => (
-                          <div key={s.id} className={`p-4 rounded-xl border flex flex-col relative bg-white/90 shadow-sm z-10 overflow-hidden h-full ${s.colorCode === 'red' ? 'border-red-200' : s.colorCode === 'blue' ? 'border-blue-200' : s.colorCode === 'yellow' ? 'border-yellow-200' : 'border-gray-200'}`}>
-                            <div className={`absolute top-0 right-0 text-xs font-bold px-3 py-1.5 rounded-bl-xl text-white ${s.colorCode === 'red' ? 'bg-red-500' : s.colorCode === 'blue' ? 'bg-blue-500' : s.colorCode === 'yellow' ? 'bg-yellow-500' : 'bg-gray-500'}`}>{s.probability}%</div>
-                            <span className="text-[10px] font-bold text-gray-400 mb-1 block">{s.id}</span>
-                            <h4 className="font-bold text-sm leading-tight mb-2 text-gray-900">{s.title}</h4>
-                            <p className="text-xs text-gray-500 leading-relaxed overflow-y-auto">{s.headline}</p>
-                          </div>
-                        ))}
+                      {result.scenarios.map((s: any) => (
+                        <div key={s.id} className={`p-4 rounded-xl border flex flex-col relative bg-white/90 shadow-sm z-10 overflow-hidden h-full ${s.colorCode === 'red' ? 'border-red-200' : s.colorCode === 'blue' ? 'border-blue-200' : s.colorCode === 'yellow' ? 'border-yellow-200' : 'border-gray-200'}`}>
+                          <div className={`absolute top-0 right-0 text-xs font-bold px-3 py-1.5 rounded-bl-xl text-white ${s.colorCode === 'red' ? 'bg-red-500' : s.colorCode === 'blue' ? 'bg-blue-500' : s.colorCode === 'yellow' ? 'bg-yellow-500' : 'bg-gray-500'}`}>{s.probability}%</div>
+                          <span className="text-[10px] font-bold text-gray-400 mb-1 block">{s.id}</span>
+                          <h4 className="font-bold text-sm leading-tight mb-2 text-gray-900">{s.title}</h4>
+                          <p className="text-xs text-gray-500 leading-relaxed overflow-y-auto">{s.headline}</p>
+                        </div>
+                      ))}
                     </div>
                     <div className="flex items-center justify-between mt-2 px-2">
                       <div className="text-xs font-bold text-gray-500 w-24">{result.axisX.min}</div>
@@ -795,16 +920,32 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm flex flex-col lg:col-span-1 border border-white/60 items-center">
-                <h3 className="font-bold text-gray-700 mb-4 text-center">戦略ポートフォリオ比較</h3>
-                <RadarChart scenarios={result.scenarios} />
+              <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm flex flex-col md:flex-row gap-6 border border-white/60">
+                {/* 左側: レーダーチャート */}
+                <div className="flex-1 flex flex-col items-center">
+                  <h3 className="font-bold text-gray-700 mb-4 text-center">戦略ポートフォリオ比較</h3>
+                  <RadarChart scenarios={result.scenarios} />
+                </div>
+
+                {/* 右側: 分析要約 */}
+                <div className="flex-1 flex flex-col">
+                  <div className="h-full bg-white/60 p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-500"></div>
+                    <h4 className="font-bold text-sm text-gray-800 mb-3 flex items-center gap-2">
+                      <span>📊</span> 戦略ポートフォリオ分析
+                    </h4>
+                    <p className="text-sm text-gray-700 leading-relaxed font-medium text-justify">
+                      {result.portfolioAnalysis || "分析データがありません。"}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="mt-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><Icons.Check /> Detailed Scenarios</h2>
               <div className="grid grid-cols-1 gap-6">
-                {result.scenarios.map((s:any) => (
+                {result.scenarios.map((s: any) => (
                   <ScenarioDetails key={s.id} scenario={s} onGenerateImage={handleGenerateImage} isImageLoading={loadingStates.images[s.id]} playingScenarioId={playingScenarioId} onSpeak={handleSpeak} isAudioLoading={loadingStates.audios[s.id]} audioUrl={s.audioUrl || audioCache[s.id]} />
                 ))}
               </div>
@@ -812,7 +953,7 @@ export default function Home() {
           </div>
         )}
       </main>
-      
+
       <footer className="w-full py-8 text-center text-gray-400 text-sm font-medium">
         {SYSTEM_CONFIG.COPYRIGHT}
       </footer>

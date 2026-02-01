@@ -1,0 +1,25 @@
+# Task: Strategic Portfolio Legend & Summaries
+
+- [x] Implement Radar Chart Legend <!-- id: 1 -->
+- [x] Implement Strategic Portfolio Summary (150 chars) <!-- id: 2 -->
+- [x] Update Layout: Vertical Stack & Add "Scenario Matrix" Label <!-- id: 3 -->
+- [x] Update PPTX Layout to Match Screen (Combined Portfolio Slide) <!-- id: 4 -->
+- [x] Update Strategy & Analysis Slide (Include Insight, Action, Early Signs) <!-- id: 5 -->
+- [x] Refine PPTX Layout (Fix Overflows/overlaps) <!-- id: 6 -->
+- [x] Embed Audio Files in PPTX <!-- id: 7 -->
+- [x] Verify Preview <!-- id: 8 -->
+    - [x] Run `npm run dev` <!-- id: 9 -->
+    - [/] User confirmation <!-- id: 10 -->
+- [x] Refine Axis Labels (Compact & Clear) <!-- id: 11 -->
+- [x] Fix Matrix Card Padding (X-axis label overflow) <!-- id: 12 -->
+- [x] Increase Portfolio Analysis Length (300 chars) <!-- id: 13 -->
+- [x] Improve Field Generation Reliability (Insight, Action, EarlySigns) <!-- id: 14 -->
+- [x] Add Custom Axis Input UI (Optional X/Y axis settings) <!-- id: 15 -->
+- [x] Improve UI: Matrix Header & Portfolio Side-by-Side <!-- id: 16 -->
+- [x] Release v.0.1.6 <!-- id: 17 -->
+- [x] UI Translation <!-- id: 6 -->
+    - [x] Translate "Future Scenarios", "Probability", etc. to Japanese <!-- id: 7 -->
+    - [x] Translate "BUSINESS INSIGHT", "ACTION", "EARLY SIGNS", "STORY" <!-- id: 8 -->
+- [x] Revert Changes <!-- id: 10 -->
+    - [x] Revert `app/page.tsx` to original state <!-- id: 11 -->
+    - [x] Clean up documentation if necessary <!-- id: 12 -->
