@@ -16,7 +16,7 @@ import CheckoutButton from "./CheckoutButton";
 // ==========================================
 const SYSTEM_CONFIG = {
   APP_NAME: "AI Scenario Planner",
-  VERSION: "v.0.1.6",
+  VERSION: "v.0.1.7",
   COPYRIGHT: "© 2026 GURISAN. All Rights Reserved"
 };
 
@@ -34,6 +34,20 @@ const PLAN_LIMITS: any = {
     audios: 100,
     pptx: true
   }
+};
+
+const DEV_UNLIMITED_GLOBAL = process.env.NEXT_PUBLIC_DEV_UNLIMITED === "true";
+const DEV_UNLIMITED_EMAILS = (process.env.NEXT_PUBLIC_DEV_UNLIMITED_EMAILS || "")
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+
+const normalizePlan = (plan: any): "free" | "pro" => {
+  const raw = String(plan || "free").toLowerCase().trim();
+  if (raw === "pro" || raw === "pro plan" || raw === "premium" || raw === "paid") {
+    return "pro";
+  }
+  return "free";
 };
 
 // --- ヘルパー関数 ---
@@ -56,6 +70,14 @@ const urlToBase64 = async (url: string): Promise<string> => {
     reader.readAsDataURL(blob);
   });
 };
+
+const escapeHtml = (value: string) =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 
 const pcmToWav = (base64Pcm: string, sampleRate = 24000) => {
   const binaryString = atob(base64Pcm);
@@ -273,6 +295,12 @@ export default function Home() {
   const [isHelpLoading, setIsHelpLoading] = useState(false);
   const helpEndRef = useRef<HTMLDivElement>(null);
 
+  const plan = normalizePlan(userData.plan);
+  const devUnlimited = DEV_UNLIMITED_GLOBAL
+    || (DEV_UNLIMITED_EMAILS.length > 0
+      && !!user?.email
+      && DEV_UNLIMITED_EMAILS.includes(user.email.toLowerCase()));
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -331,7 +359,7 @@ export default function Home() {
   // --- 制限チェック関数 ---
   const checkLimit = (type: 'scenarios' | 'images' | 'audios' | 'pptx') => {
     if (!user) return false;
-    const plan = userData.plan || 'free';
+    if (devUnlimited) return true;
     const limit = PLAN_LIMITS[plan][type];
 
     if (typeof limit === 'boolean') {
@@ -344,7 +372,10 @@ export default function Home() {
 
     const current = userData.usage[type] || 0;
     if (current >= limit) {
-      alert(`⚠️ ${plan.toUpperCase()}プランの上限に達しました。\n(今月: ${current}/${limit}回)\n\n制限解除にはProプランへのアップグレードが必要です。`);
+      const overMsg = plan === "pro"
+        ? "制限解除には上限の引き上げが必要です。必要であればサポートにご連絡ください。"
+        : "制限解除にはProプランへのアップグレードが必要です。";
+      alert(`⚠️ ${plan.toUpperCase()}プランの上限に達しました。\n(今月: ${current}/${limit}回)\n\n${overMsg}`);
       return false;
     }
     return true;
@@ -352,6 +383,7 @@ export default function Home() {
 
   const incrementUsage = async (type: 'scenarios' | 'images' | 'audios') => {
     if (!user) return;
+    if (devUnlimited) return;
     const userRef = doc(db, "users", user.uid);
     await updateDoc(userRef, {
       [`usage.${type}`]: increment(1)
@@ -696,6 +728,305 @@ export default function Home() {
     } catch (e) { alert("保存に失敗しました"); }
   };
 
+  const handleExportHtml = async () => {
+    if (!result) return;
+    try {
+      const scenarios = await Promise.all(result.scenarios.map(async (s: any) => {
+        const imageData = s.imageUrl
+          ? (s.imageUrl.startsWith("data:") ? s.imageUrl : `data:image/png;base64,${await urlToBase64(s.imageUrl)}`)
+          : null;
+        const audioData = s.audioUrl
+          ? (s.audioUrl.startsWith("data:") ? s.audioUrl : `data:audio/wav;base64,${await urlToBase64(s.audioUrl)}`)
+          : null;
+        return { ...s, imageData, audioData };
+      }));
+
+      const axisX = result.axisX || { label: "", min: "", max: "" };
+      const axisY = result.axisY || { label: "", min: "", max: "" };
+      const labels = ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"];
+      const colorMap: Record<string, string> = {
+        red: "#ef4444",
+        blue: "#3b82f6",
+        yellow: "#eab308",
+        gray: "#6b7280",
+      };
+
+      const chartSize = 200;
+      const chartCenter = chartSize / 2;
+      const chartRadius = 80;
+      const getPoint = (val: number, i: number, total: number) => {
+        const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
+        const r = (val / 5) * chartRadius;
+        return `${chartCenter + r * Math.cos(angle)},${chartCenter + r * Math.sin(angle)}`;
+      };
+      const getLabelPoint = (i: number, total: number) => {
+        const angle = (Math.PI * 2 * i) / total - Math.PI / 2;
+        const r = chartRadius + 22;
+        return `${chartCenter + r * Math.cos(angle)},${chartCenter + r * Math.sin(angle)}`;
+      };
+      const radarRings = [1, 2, 3, 4, 5].map((r) => {
+        const pts = labels.map((_, i) => getPoint(r, i, labels.length)).join(" ");
+        return `<polygon points="${pts}" fill="none" stroke="#e2e8f0" stroke-width="1" />`;
+      }).join("");
+      const radarPolygons = scenarios.map((s: any) => {
+        const pts = (s.allocation || []).map((a: any, i: number) => getPoint(a.val || 0, i, labels.length)).join(" ");
+        const color = colorMap[s.colorCode] || colorMap.gray;
+        return `<polygon points="${pts}" fill="${color}4D" stroke="${color}" stroke-width="2" />`;
+      }).join("");
+      const radarLabels = labels.map((l, i) => {
+        const [x, y] = getLabelPoint(i, labels.length).split(",");
+        return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="10" fill="#6b7280" font-weight="700">${escapeHtml(l)}</text>`;
+      }).join("");
+      const radarLegend = scenarios.map((s: any) => {
+        const color = colorMap[s.colorCode] || colorMap.gray;
+        return `<div class="legend-row">
+          <span class="legend-dot" style="background:${color};"></span>
+          <span class="legend-text">${escapeHtml(s.id)}: ${escapeHtml(s.title || "")}</span>
+        </div>`;
+      }).join("");
+
+      const html = `<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(theme)} - AI Scenario Planner</title>
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #4f46e5;
+      --accent-2: #7c3aed;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif;
+      background: radial-gradient(#cbd5e1 1px, transparent 1px), var(--bg);
+      background-size: 24px 24px;
+      color: var(--text);
+    }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 18px 80px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08); }
+    .title { font-size: 32px; font-weight: 800; text-align: center; color: #5b4bff; }
+    .desc { margin: 12px auto 0; max-width: 820px; font-size: 12px; line-height: 1.8; color: #64748b; text-align: center; white-space: pre-wrap; }
+    .desc-collapsed { max-height: 72px; overflow: hidden; position: relative; }
+    .desc-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: linear-gradient(180deg, rgba(255,255,255,0), #ffffff); }
+    .desc-toggle { margin: 8px auto 0; display: block; background: none; border: none; color: #4f46e5; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .section-pill { display: inline-flex; padding: 8px 22px; border-radius: 999px; background: linear-gradient(90deg, #4f46e5, #7c3aed); box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25); font-weight: 700; color: #fff; font-size: 13px; }
+    .section-title { display: flex; justify-content: center; margin: 12px 0 14px; }
+    .matrix-wrap { margin-top: 18px; }
+    .matrix { display: grid; grid-template-columns: 70px 1fr; gap: 12px; }
+    .matrix-core { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 12px; min-height: 380px; }
+    .axis { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .axis-pill { background: #fff; border: 1px solid #dfe3ff; border-radius: 999px; padding: 6px 10px; color: #4f46e5; font-weight: 700; font-size: 11px; position: relative; z-index: 2; }
+    .axis-line { background: #dfe3ff; position: relative; z-index: 1; }
+    .scenario-card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: #fff; position: relative; box-shadow: 0 4px 10px rgba(15,23,42,0.04); }
+    .scenario-prob { position: absolute; top: 0; right: 0; color: #fff; font-weight: 700; font-size: 11px; padding: 6px 12px; border-bottom-left-radius: 10px; }
+    .scenario-id { font-size: 10px; font-weight: 700; color: #9ca3af; margin-bottom: 6px; display: block; }
+    .headline { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .detail { font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+    .grid { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .panel { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08); }
+    .radar-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .radar-svg { overflow: visible; }
+    .legend { width: 100%; display: grid; gap: 6px; margin-top: 6px; }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .legend-text { font-size: 10px; font-weight: 700; color: #4b5563; }
+    .analysis-box { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 16px 16px 16px 20px; min-height: 100%; }
+    .analysis-bar { position: absolute; left: 0; top: 0; width: 4px; height: 100%; background: linear-gradient(180deg, #6366f1, #9333ea); border-radius: 20px 0 0 20px; }
+    .analysis-title { font-size: 12px; font-weight: 800; color: #1f2937; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .detail-header { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; color: #1f2937; margin: 18px 0 12px; }
+    .scenario-detail { border-left: 4px solid #e5e7eb; border-radius: 18px; padding: 24px; background: rgba(255,255,255,0.9); }
+    .scenario-detail-title { font-size: 22px; font-weight: 800; margin: 6px 0 10px; }
+    .story-box { background: #fff; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; }
+    .audio-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e5e7eb; background: #f8fafc; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #0f172a; cursor: pointer; }
+    .audio-btn[data-state="playing"] { background: #e0e7ff; border-color: #c7d2fe; color: #4338ca; }
+    .story { font-family: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif; }
+    .pill-blue { background: #eef2ff; border: 1px solid #dfe3ff; border-radius: 10px; padding: 10px; }
+    .section-tag { font-weight: 800; font-size: 12px; margin-bottom: 6px; }
+    footer { color: var(--muted); font-size: 12px; margin-top: 40px; text-align: center; }
+    @media (max-width: 820px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .matrix { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="title">${escapeHtml(theme)}</div>
+      <div class="desc desc-collapsed" id="details">
+        ${escapeHtml(details || "")}
+        <div class="desc-fade" id="detailsFade"></div>
+      </div>
+      <button class="desc-toggle" id="detailsToggle">▼ 全文を表示</button>
+    </div>
+
+    <div class="matrix-wrap card" style="margin-top:20px;">
+      <div class="section-title"><span class="section-pill">シナリオマトリクス</span></div>
+      <div class="matrix">
+        <div class="axis" style="display:flex; flex-direction:column; justify-content:space-between; padding: 8px 0;">
+          <div>${escapeHtml(axisY.max || "")}</div>
+          <div style="display:flex; align-items:center; justify-content:center; flex:1; position:relative; margin: 8px 0;">
+            <div class="axis-line" style="position:absolute; width:2px; height:100%; left:50%; transform:translateX(-50%); z-index:1;"></div>
+            <div class="axis-pill" style="writing-mode: vertical-rl;">${escapeHtml(axisY.label || "")}</div>
+          </div>
+          <div>${escapeHtml(axisY.min || "")}</div>
+        </div>
+        <div>
+          <div class="matrix-core">
+            ${scenarios.map((s: any) => {
+              const color = colorMap[s.colorCode] || colorMap.gray;
+              return `
+              <div class="scenario-card" style="border-color:${color}33;">
+                <div class="scenario-prob" style="background:${color};">${escapeHtml(String(s.probability || ""))}%</div>
+                <span class="scenario-id">${escapeHtml(s.id)}</span>
+                <div style="font-weight:800; font-size:14px;">${escapeHtml(s.title || "")}</div>
+                <div class="headline">${escapeHtml(s.headline || "")}</div>
+              </div>
+            `; }).join("")}
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:12px;">
+            <div class="axis">${escapeHtml(axisX.min || "")}</div>
+            <div style="flex:1; display:flex; align-items:center; justify-content:center; position:relative;">
+              <div class="axis-line" style="position:absolute; width:100%; height:2px; z-index:1;"></div>
+              <div class="axis-pill">${escapeHtml(axisX.label || "")}</div>
+            </div>
+            <div class="axis" style="text-align:right;">${escapeHtml(axisX.max || "")}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel grid grid-2" style="gap:24px; margin-top:20px;">
+      <div class="radar-wrap">
+        <div style="font-weight:700; color:#374151; margin-bottom:8px;">戦略ポートフォリオ比較</div>
+        <svg class="radar-svg" width="${chartSize}" height="${chartSize}" viewBox="0 0 ${chartSize} ${chartSize}">
+          ${radarRings}
+          ${radarPolygons}
+          ${radarLabels}
+        </svg>
+        <div class="legend">${radarLegend}</div>
+      </div>
+      <div class="analysis-box">
+        <div class="analysis-bar"></div>
+        <div class="analysis-title">📊 戦略ポートフォリオ分析</div>
+        <div class="detail">${escapeHtml(result.portfolioAnalysis || "分析データがありません。")}</div>
+      </div>
+    </div>
+
+    <div class="detail-header">✓ Detailed Scenarios</div>
+    <div class="grid">
+      ${scenarios.map((s: any) => {
+        const color = colorMap[s.colorCode] || colorMap.gray;
+        return `
+        <div class="scenario-detail" style="border-left-color:${color}; background:${color}0D;">
+          <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+            <div style="flex:1; min-width: 240px;">
+              <div class="meta" style="text-transform:uppercase; font-weight:700; opacity:0.7;">${escapeHtml(s.id)} (${escapeHtml(String(s.probability || ""))}%)</div>
+              <div class="scenario-detail-title">${escapeHtml(s.title || "")}</div>
+              <div class="headline" style="font-weight:700;">${escapeHtml(s.headline || "")}</div>
+            </div>
+            <div style="width: 300px;">
+              ${s.imageData ? `<img src="${s.imageData}" alt="${escapeHtml(s.title || "")}" style="width:100%; border-radius:12px; border:1px solid #e5e7eb;" />` : ""}
+            </div>
+          </div>
+
+          <div class="grid grid-2" style="gap: 16px; margin-top: 16px;">
+            <div>
+              <div class="pill-blue">
+                <div class="section-tag" style="color:#4f46e5;">💡 BUSINESS INSIGHT</div>
+                <div class="detail">${escapeHtml(s.insight?.breakthrough || "")}</div>
+              </div>
+              <div style="margin-top:12px;">
+                <div class="section-tag" style="color:#16a34a;">✅ ACTION</div>
+                <div class="detail">${escapeHtml(s.actionAdvice || "")}</div>
+              </div>
+              <div style="margin-top:12px;">
+                <div class="section-tag" style="color:#f97316;">📡 EARLY SIGNS</div>
+                <div class="detail">${escapeHtml((s.earlySigns || []).map((sign: string) => `• ${sign}`).join("\n"))}</div>
+              </div>
+            </div>
+            <div class="story-box">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                <div class="meta" style="font-weight:700;">STORY</div>
+                ${s.audioData ? `<button class="audio-btn" data-audio-id="audio-${escapeHtml(s.id)}" data-state="paused">▶ 再生</button>` : ""}
+              </div>
+              <div class="detail story">${escapeHtml(s.story || "")}</div>
+              ${s.audioData ? `<audio id="audio-${escapeHtml(s.id)}" src="${s.audioData}" preload="auto"></audio>` : ""}
+            </div>
+          </div>
+        </div>
+      `; }).join("")}
+    </div>
+
+    <footer>${escapeHtml(SYSTEM_CONFIG.COPYRIGHT)}</footer>
+  </div>
+</body>
+<script>
+  const buttons = document.querySelectorAll(".audio-btn");
+  buttons.forEach((btn) => {
+    const audioId = btn.getAttribute("data-audio-id");
+    const audio = audioId ? document.getElementById(audioId) : null;
+    if (!audio) return;
+    btn.addEventListener("click", () => {
+      if (audio.paused) {
+        document.querySelectorAll("audio").forEach((a) => { if (a !== audio) { a.pause(); } });
+        document.querySelectorAll(".audio-btn").forEach((b) => { if (b !== btn) { b.textContent = "▶ 再生"; b.setAttribute("data-state", "paused"); } });
+        audio.play();
+        btn.textContent = "■ 停止";
+        btn.setAttribute("data-state", "playing");
+      } else {
+        audio.pause();
+        btn.textContent = "▶ 再生";
+        btn.setAttribute("data-state", "paused");
+      }
+    });
+    audio.addEventListener("ended", () => {
+      btn.textContent = "▶ 再生";
+      btn.setAttribute("data-state", "paused");
+    });
+  });
+</script>
+<script>
+  (function () {
+    const details = document.getElementById("details");
+    const toggle = document.getElementById("detailsToggle");
+    const fade = document.getElementById("detailsFade");
+    if (!details || !toggle) return;
+    let expanded = false;
+    toggle.addEventListener("click", () => {
+      expanded = !expanded;
+      if (expanded) {
+        details.classList.remove("desc-collapsed");
+        if (fade) fade.style.display = "none";
+        toggle.textContent = "▲ 閉じる";
+      } else {
+        details.classList.add("desc-collapsed");
+        if (fade) fade.style.display = "block";
+        toggle.textContent = "▼ 全文を表示";
+      }
+    });
+  })();
+</script>
+</html>`;
+
+      const blob = new Blob([html], { type: "text/html" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${theme.replace(/\s+/g, "_")}_view.html`;
+      link.click();
+    } catch (e) {
+      alert("HTML書き出しに失敗しました");
+    }
+  };
+
   const handleLoadProject = (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -789,7 +1120,7 @@ export default function Home() {
                   <Icons.Plus /> 新規
                 </button>
 
-                {userData.plan === 'pro' ? (
+                {plan === 'pro' ? (
                   <button onClick={handleExportPptx} className="flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-2 rounded-lg transition" title="PowerPointで書き出し">
                     <Icons.Presentation /> PPTX
                   </button>
@@ -807,22 +1138,28 @@ export default function Home() {
             <button onClick={handleSaveProject} disabled={!result} className={`flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition ${!result ? 'opacity-50 cursor-not-allowed' : ''}`} title="プロジェクトを保存">
               <Icons.Save /> 保存
             </button>
+            <button onClick={handleExportHtml} disabled={!result} className={`flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition ${!result ? 'opacity-50 cursor-not-allowed' : ''}`} title="閲覧用HTMLを書き出し">
+              <Icons.Download /> HTML
+            </button>
 
             <div className="h-6 w-px bg-gray-300 mx-1"></div>
 
             {user ? (
               <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                  <div className={`text-xs font-bold ${userData.plan === 'pro' ? 'text-indigo-600' : 'text-gray-500'}`}>
-                    {userData.plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                  <div className={`text-xs font-bold ${plan === 'pro' ? 'text-indigo-600' : 'text-gray-500'}`}>
+                    {plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
                   </div>
                   <div className="text-[10px] text-gray-400">
-                    残り: {userData.plan === 'pro' && PLAN_LIMITS.pro.scenarios === Infinity ? '∞' : (PLAN_LIMITS[userData.plan].scenarios - userData.usage.scenarios)}回
+                    残り: {devUnlimited || (plan === 'pro' && PLAN_LIMITS.pro.scenarios === Infinity) ? '∞' : (PLAN_LIMITS[plan].scenarios - userData.usage.scenarios)}回
+                  </div>
+                  <div className="text-[10px] text-gray-400">
+                    画像: {devUnlimited ? '∞' : (PLAN_LIMITS[plan].images - userData.usage.images)}回 / 音声: {devUnlimited ? '∞' : (PLAN_LIMITS[plan].audios - userData.usage.audios)}回
                   </div>
                 </div>
 
                 {/* 🚀 アップグレードボタンを追加 (Free Planの場合のみ) */}
-                {userData.plan !== 'pro' && (
+                {plan !== 'pro' && (
                   <div className="scale-75 origin-right">
                     <CheckoutButton />
                   </div>

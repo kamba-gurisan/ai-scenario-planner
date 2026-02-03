@@ -79,7 +79,7 @@ export async function POST(request: Request) {
                   "actionAdvice": "高校生でもわかる300文字程度の具体的なアクション提案...", 
                   "story": "主人公の物語(600文字程度)...", 
                   "earlySigns": ["兆候1", "兆候2", "兆候3"], 
-                  "imgPrompt": "Detailed prompt in English describing a cinematic shot of the protagonist (from the story) smiling confidently in a successful moment. Bright lighting, inspiring atmosphere. No text.",
+                  "imgPrompt": "Detailed prompt in English for a cinematic still that visually differentiates THIS scenario. Must include: (1) a specific setting tied to the axis extremes (X/Y min/max meaning), (2) a unique visual motif/prop that reflects the business context or early signs, (3) a distinct time-of-day and color palette, (4) the protagonist from the story (one person) in a clear action, (5) camera angle and lens choice. Avoid repeating the same setting or composition across scenarios. No text, no words.",
                   "audioTone": "Speak in a positive, inspiring, and confident tone:", 
                   "probability": 40, 
                   "allocation": [
@@ -104,6 +104,12 @@ export async function POST(request: Request) {
         const yMax = axes.y.max ? `"${axes.y.max}"` : "AIが決定";
         systemInstructionText += `Thinking Axis Y: Label=${yLabel}, Min=${yMin}, Max=${yMax}\n`;
       }
+
+      systemInstructionText += `\n\n【画像プロンプトの差別化ルール (厳守)】\n` +
+        `- 4シナリオの画像は「舞台・時間帯・色調・小道具・構図」が必ず異なるようにする。\n` +
+        `- 各シナリオのX/Y軸の位置(Min/Max)が視覚的に伝わる要素を入れる。\n` +
+        `- earlySignsやactionAdviceに出てくる具体物(例: デバイス、看板、業務現場、法規制の雰囲気)を最低1つ入れる。\n` +
+        `- 似た構図(同じオフィス、同じ会議室、同じ人物の立ち姿など)は禁止。\n`;
 
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
