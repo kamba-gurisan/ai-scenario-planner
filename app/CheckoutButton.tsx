@@ -57,8 +57,15 @@ export default function CheckoutButton() {
       onClick={handleCheckout}
       disabled={loading}
       style={{
-        backgroundColor: "#635bff", color: "white", padding: "12px 24px", 
-        border: "none", borderRadius: "4px", fontSize: "16px", cursor: "pointer", opacity: loading ? 0.7 : 1
+        backgroundColor: "#635bff",
+        color: "white",
+        padding: "6px 12px",
+        border: "none",
+        borderRadius: "6px",
+        fontSize: "12px",
+        fontWeight: 700,
+        cursor: "pointer",
+        opacity: loading ? 0.7 : 1
       }}
     >
       {loading ? "準備中..." : "アップグレード"}

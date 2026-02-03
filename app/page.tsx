@@ -812,6 +812,8 @@ export default function Home() {
     .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 18px 80px; }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08); }
     .title { font-size: 32px; font-weight: 800; text-align: center; color: #5b4bff; }
+    .version { margin-top: 6px; text-align: center; font-size: 11px; font-weight: 700; color: #64748b; }
+    .version-badge { display: inline-block; margin-left: 6px; background: #eef2ff; color: #4f46e5; padding: 2px 6px; border-radius: 999px; font-size: 10px; }
     .desc { margin: 12px auto 0; max-width: 820px; font-size: 12px; line-height: 1.8; color: #64748b; text-align: center; white-space: pre-wrap; }
     .desc-collapsed { max-height: 72px; overflow: hidden; position: relative; }
     .desc-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 24px; background: linear-gradient(180deg, rgba(255,255,255,0), #ffffff); }
@@ -861,6 +863,7 @@ export default function Home() {
   <div class="wrap">
     <div class="card">
       <div class="title">${escapeHtml(theme)}</div>
+      <div class="version">${escapeHtml(SYSTEM_CONFIG.APP_NAME)} <span class="version-badge">${escapeHtml(SYSTEM_CONFIG.VERSION)}</span></div>
       <div class="desc desc-collapsed" id="details">
         ${escapeHtml(details || "")}
         <div class="desc-fade" id="detailsFade"></div>
