@@ -1272,7 +1272,7 @@ export default function Home() {
             <div className="text-center space-y-2 border-b border-gray-200 pb-6 mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{theme}</h1>
               <div className="max-w-2xl mx-auto mt-4 text-left">
-                <div className={`text-gray-500 text-sm bg-white/50 border border-gray-100 p-4 rounded-xl transition-all duration-300 ${isDetailsExpanded ? '' : 'max-h-24 overflow-hidden relative'}`}>
+                <div className={`text-gray-500 text-sm bg-white/50 border border-gray-100 p-4 rounded-xl transition-all duration-300 whitespace-pre-wrap ${isDetailsExpanded ? '' : 'max-h-24 overflow-hidden relative'}`}>
                   {details}
                   {!isDetailsExpanded && <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-white/90 to-transparent pointer-events-none"></div>}
                 </div>

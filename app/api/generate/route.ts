@@ -120,7 +120,43 @@ export async function POST(request: Request) {
       const userPrompt = `テーマ: ${theme}\n詳細コンテキスト: ${details}`;
       const result = await model.generateContent(userPrompt);
       const response = await result.response;
-      return NextResponse.json({ text: response.text() });
+      const rawText = response.text();
+
+      try {
+        const parsed = JSON.parse(rawText);
+        const normalizedScenarios = Array.isArray(parsed.scenarios) ? parsed.scenarios.map((s: any, idx: number) => {
+          const fallbackAction = `${s?.title || `Scenario ${idx + 1}`}では、まず「小さく試して学ぶ」ことが重要です。既存業務の改善と新しい価値づくりを同時に進めるため、担当チームを決め、検証指標を3つに絞って毎週見直してください。`;
+          const actionAdvice = (s?.actionAdvice || s?.action || s?.actions || s?.insight?.actionAdvice || "").toString().trim();
+          const breakthrough = (s?.insight?.breakthrough || "").toString().trim();
+          const context = (s?.insight?.context || "").toString().trim();
+          const issue = (s?.insight?.issue || "").toString().trim();
+          const earlySigns = Array.isArray(s?.earlySigns) ? s.earlySigns.filter(Boolean).slice(0, 3) : [];
+
+          while (earlySigns.length < 3) {
+            earlySigns.push(`このシナリオに関連する兆候（補完${earlySigns.length + 1}）`);
+          }
+
+          return {
+            ...s,
+            insight: {
+              context: context || "市場環境は変化が速く、前提が短期間で更新される状態です。",
+              issue: issue || "既存の成功パターンだけでは対応しきれず、意思決定の遅れが競争力に直結することです。",
+              breakthrough: breakthrough || "重要なのは、単発の効率化ではなく、顧客価値を継続的に改善できる仕組みを持つことです。データと現場の知見を組み合わせ、仮説検証を短い周期で回すことで、変化に強い事業運営が可能になります。"
+            },
+            actionAdvice: actionAdvice || fallbackAction,
+            earlySigns,
+          };
+        }) : [];
+
+        const normalized = {
+          ...parsed,
+          scenarios: normalizedScenarios
+        };
+
+        return NextResponse.json({ text: JSON.stringify(normalized) });
+      } catch {
+        return NextResponse.json({ text: rawText });
+      }
     }
 
     // --- Mode 2: 画像生成 (Imagen 4.0) ---
