@@ -1069,7 +1069,20 @@ export default function Home() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: 'help', text: userText, history: helpMessages }),
+        body: JSON.stringify({
+          mode: 'help',
+          text: userText,
+          history: helpMessages,
+          appContext: {
+            version: SYSTEM_CONFIG.VERSION,
+            exportOptions: ["JSON", "PPTX(Pro)", "HTML(view-only with embedded image/audio)"],
+            htmlNotes: [
+              "HTMLは閲覧専用",
+              "画像・音声を埋め込み",
+              "詳細コンテキストは折りたたみ表示"
+            ]
+          }
+        }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);

@@ -181,7 +181,8 @@ export async function POST(request: Request) {
 
     // --- Mode 5: ヘルプ (APP HELP) ---
     if (mode === 'help') {
-      const { history, text: userText } = body;
+      const { history, text: userText, appContext } = body;
+      const runtimeContext = appContext ? `\n\n【実行時アプリ情報】\n${JSON.stringify(appContext, null, 2)}` : "";
       const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
         systemInstruction: `あなたは、この「AI Scenario Planner」というアプリケーションの専任テクニカルヘルプデスクです。
@@ -206,12 +207,17 @@ export async function POST(request: Request) {
         1. シナリオ生成: 2軸 (X, Y) に基づく4シナリオ (Scenario A-D) を作成。
         2. 戦略ポートフォリオ: 各シナリオのリソース配分（イノベーション、マーケティング等）を可視化。
         3. 保存・読込: Firestoreへの自動保存、およびJSONファイルとしてのローカル保存/読込が可能。
-        4. PPTX: スライド形式（表紙、マトリクス、各詳細）でエクスポート可能。
+        4. PPTX: スライド形式（表紙、マトリクス、各詳細）でエクスポート可能（Pro限定）。
+        5. HTML出力: 閲覧専用のHTMLとして書き出し可能。生成済み画像・音声を埋め込むため、配布先でも閲覧/再生可能。
+           - HTMLは閲覧専用で、再生成などの編集機能は含まれません。
+           - 詳細コンテキストは折りたたみ表示（全文表示トグルあり）。
 
         【重要なルール】
         ・履歴の保存先を聞かれたら、Firebase Firestoreの 'scenarios' コレクションであることや、JSONでの書き出しが可能であることを説明してください。
+        ・エクスポート方法を聞かれたら、JSON / PPTX(Pro) / 閲覧専用HTML(画像・音声埋め込み)の3種類を案内してください。
         ・アプリに関係のない質問には、「このアプリについての質問のみお答えできます」と回答してください。
-        ・回答は日本語で、マークダウン形式を使用して読みやすく装飾してください。`
+        ・回答は日本語で、マークダウン形式を使用して読みやすく装飾してください。
+        ・機能の最新状態は、可能な限り下記「実行時アプリ情報」を優先して回答してください。${runtimeContext}`
       });
 
       // 履歴がある場合は、GeminiのChatSession形式に変換
