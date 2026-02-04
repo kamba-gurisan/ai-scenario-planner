@@ -16,7 +16,7 @@ import CheckoutButton from "./CheckoutButton";
 // ==========================================
 const SYSTEM_CONFIG = {
   APP_NAME: "AI Scenario Planner",
-  VERSION: "v.0.1.8",
+  VERSION: "v.0.1.9",
   COPYRIGHT: "© 2026 GURISAN. All Rights Reserved"
 };
 
@@ -563,6 +563,9 @@ export default function Home() {
       };
 
       const pres = new PptxGenJS();
+      const R_OUTER = 0.02;
+      const R_INNER = 0.03;
+      const R_SMALL = 0.015;
       const LAYOUT = {
         W: 10.0, H: 5.625, MARGIN: 0.4,
         COLOR: { MAIN: "1F2937", SUB: "64748B", ACCENT: "4F46E5", ACCENT2: "7C3AED", BG: "F0F4F8", WHITE: "FFFFFF", AXIS_LINE: "CBD5E1" }
@@ -583,11 +586,11 @@ export default function Home() {
       // 1. 表紙
       let slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
-      slide.addShape(pres.ShapeType.roundRect, { x: 0.8, y: 0.8, w: 8.4, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, radius: 0.04, shadow: { type: "outer", color: "000000", opacity: 0.08, blur: 4, offset: 2, angle: 90 } } as any);
-      slide.addText(SYSTEM_CONFIG.APP_NAME, { x: 1.2, y: 1.3, w: 7.6, fontSize: 12, color: LAYOUT.COLOR.ACCENT, bold: true, align: "center", charSpacing: 1.5, ...JP_FONT });
-      slide.addText(theme, { x: 1.2, y: 1.7, w: 7.6, fontSize: 30, color: LAYOUT.COLOR.ACCENT2, bold: true, align: "center", shrinkText: true, ...JP_FONT });
+      slide.addShape(pres.ShapeType.rect, { x: 0.8, y: 0.8, w: 8.4, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: R_OUTER, shadow: { type: "outer", color: "000000", opacity: 0.08, blur: 4, offset: 2, angle: 90 } } as any);
+      slide.addText(SYSTEM_CONFIG.APP_NAME, { x: 1.2, y: 1.05, w: 7.6, fontSize: 11, color: LAYOUT.COLOR.ACCENT, bold: true, align: "center", charSpacing: 1.2, ...JP_FONT });
+      slide.addText(theme, { x: 1.2, y: 1.95, w: 7.6, fontSize: 28, color: LAYOUT.COLOR.ACCENT2, bold: true, align: "center", shrinkText: true, ...JP_FONT });
       if (summaryDetails) {
-        slide.addShape(pres.ShapeType.roundRect, { x: 1.3, y: 3.0, w: 7.4, h: 1.6, fill: { color: "F8FAFC" }, line: { color: "E2E8F0", width: 1 }, radius: 0.04 } as any);
+        slide.addShape(pres.ShapeType.rect, { x: 1.3, y: 3.0, w: 7.4, h: 1.6, fill: { color: "F8FAFC" }, line: { color: "E2E8F0", width: 1 }, rectRadius: R_INNER } as any);
         slide.addText("前提条件 / コンテキスト", { x: 1.55, y: 3.2, w: 6.9, fontSize: 10, color: LAYOUT.COLOR.SUB, bold: true, ...JP_FONT });
         slide.addText(summaryDetails, { x: 1.55, y: 3.45, w: 6.9, h: 0.95, fontSize: 10, color: LAYOUT.COLOR.MAIN, align: "left", valign: "top", lineSpacingMultiple: 1.2, shrinkText: true, ...JP_FONT });
       }
@@ -597,7 +600,7 @@ export default function Home() {
       // 2. マトリクス
       slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
-      slide.addShape(pres.ShapeType.roundRect, { x: 3.6, y: 0.2, w: 2.8, h: 0.5, fill: { color: LAYOUT.COLOR.ACCENT }, line: { color: LAYOUT.COLOR.ACCENT, width: 0 }, radius: 0.04 } as any);
+      slide.addShape(pres.ShapeType.rect, { x: 3.6, y: 0.2, w: 2.8, h: 0.5, fill: { color: LAYOUT.COLOR.ACCENT }, line: { color: LAYOUT.COLOR.ACCENT, width: 0 }, rectRadius: R_SMALL } as any);
       slide.addText("シナリオマトリクス", { x: 3.6, y: 0.28, w: 2.8, h: 0.3, fontSize: 13, bold: true, color: "FFFFFF", align: "center", ...JP_FONT });
       const chartX = 1.2, chartY = 1.0, chartW = 8.2, chartH = 4.0;
       const centerX = chartX + chartW / 2;
@@ -619,8 +622,8 @@ export default function Home() {
         const s = result.scenarios.find((sc: any) => sc.id.includes(posId));
         if (!s) return;
         const style = SCENARIO_STYLES[posId] || SCENARIO_STYLES.C;
-        slide.addShape(pres.ShapeType.roundRect, { x: x, y: y, w: cardW, h: cardH, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, radius: 0.04, shadow: { type: "outer", color: "000000", opacity: 0.08, blur: 3, offset: 2, angle: 90 } } as any);
-        slide.addShape(pres.ShapeType.roundRect, { x: x + cardW - 0.55, y: y, w: 0.55, h: 0.26, fill: { color: style.color }, line: { color: style.color, width: 0 }, radius: 0.04 } as any);
+        slide.addShape(pres.ShapeType.rect, { x: x, y: y, w: cardW, h: cardH, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, rectRadius: R_SMALL, shadow: { type: "outer", color: "000000", opacity: 0.08, blur: 3, offset: 2, angle: 90 } } as any);
+        slide.addShape(pres.ShapeType.rect, { x: x + cardW - 0.55, y: y, w: 0.55, h: 0.26, fill: { color: style.color }, line: { color: style.color, width: 0 }, rectRadius: R_SMALL } as any);
         slide.addText(`Scenario ${posId}`, { x: x + 0.2, y: y + 0.18, w: 2.0, fontSize: 9, bold: true, color: "94A3B8", ...JP_FONT });
         slide.addText(`${s.probability}%`, { x: x + cardW - 0.52, y: y + 0.03, w: 0.5, h: 0.16, align: "center", fontSize: 8, bold: true, color: "FFFFFF", ...JP_FONT });
         slide.addText(s.title, { x: x + 0.2, y: y + 0.5, w: cardW - 0.4, h: 0.6, fontSize: 12, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true, ...JP_FONT });
@@ -635,8 +638,8 @@ export default function Home() {
       // 3. 戦略ポートフォリオ比較 (Combined Radar & Analysis)
       let pPortfolio = pres.addSlide();
       pPortfolio.background = { color: LAYOUT.COLOR.BG };
-      pPortfolio.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 0.2, w: 3.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, radius: 0.04 } as any);
-      pPortfolio.addText("戦略ポートフォリオ比較", { x: 0.6, y: 0.29, w: 2.8, fontSize: 13, bold: true, color: LAYOUT.COLOR.MAIN, ...JP_FONT });
+      pPortfolio.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.2, w: 3.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: R_SMALL } as any);
+      pPortfolio.addText("戦略ポートフォリオ比較", { x: 0.62, y: 0.2, w: 2.7, h: 0.5, fontSize: 13, bold: true, color: LAYOUT.COLOR.MAIN, valign: "middle", ...JP_FONT });
 
       // Combined Radar Chart
       const combinedChartData = result.scenarios.map((s: any) => ({
@@ -663,7 +666,7 @@ export default function Home() {
       } as any);
 
       // Portfolio Analysis Text
-      pPortfolio.addShape(pres.ShapeType.roundRect, { x: 5.2, y: 1.2, w: 4.4, h: 3.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, radius: 0.04, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+      pPortfolio.addShape(pres.ShapeType.rect, { x: 5.2, y: 1.2, w: 4.4, h: 3.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: R_SMALL, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
       pPortfolio.addShape(pres.ShapeType.rect, { x: 5.2, y: 1.2, w: 0.05, h: 3.8, fill: { color: LAYOUT.COLOR.ACCENT } });
       pPortfolio.addText("📊 戦略ポートフォリオ分析", { x: 5.4, y: 1.4, fontSize: 11, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
       pPortfolio.addText(result.portfolioAnalysis || "No analysis data.", { x: 5.4, y: 1.8, w: 4.0, h: 3.0, fontSize: 10, color: "374151", align: "justify", valign: "top", lineSpacing: 16, shrinkText: true, ...JP_FONT });
@@ -676,11 +679,11 @@ export default function Home() {
         const style = SCENARIO_STYLES[sid];
         const p1 = pres.addSlide();
         p1.background = { color: LAYOUT.COLOR.BG };
-        p1.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 0.3, w: 9.0, h: 0.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, radius: 0.04, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+        p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, rectRadius: R_SMALL, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 0.15, h: 0.8, fill: { color: style.color } });
         p1.addText(`${s.id}: ${s.title}`, { x: 0.8, y: 0.3, w: 7.0, h: 0.8, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, valign: "middle", ...JP_FONT });
         p1.addText(`確率: ${s.probability}%`, { x: 8.0, y: 0.3, w: 1.3, h: 0.8, fontSize: 12, align: "center", color: style.color, bold: true, valign: "middle", ...JP_FONT });
-        p1.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.3, w: 9.0, h: 4.0, fill: { color: style.bg }, line: { color: style.color, width: 1 }, radius: 0.04, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+        p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.3, w: 9.0, h: 4.0, fill: { color: style.bg }, line: { color: style.color, width: 1 }, rectRadius: R_SMALL, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         if (s.imageUrl && s.imageUrl.startsWith("data:image")) { p1.addImage({ data: s.imageUrl, x: 0.8, y: 1.6, w: 2.8, h: 1.58 }); }
         p1.addText(s.headline, { x: 3.8, y: 1.6, w: 5.4, h: 1.5, fontSize: 16, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true, ...JP_FONT });
         p1.addText("STORY", { x: 0.8, y: 3.3, fontSize: 10, bold: true, color: "94A3B8" });
@@ -697,9 +700,9 @@ export default function Home() {
 
         const p2 = pres.addSlide();
         p2.background = { color: LAYOUT.COLOR.BG };
-        p2.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 0.3, w: 9.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, radius: 0.04 } as any);
+        p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, rectRadius: R_SMALL } as any);
         p2.addText(`${s.id} - Strategy & Analysis`, { x: 0.7, y: 0.3, h: 0.5, fontSize: 12, bold: true, color: LAYOUT.COLOR.SUB, valign: "middle" });
-        p2.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.0, w: 3.5, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, radius: 0.04, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+        p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.0, w: 3.5, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, rectRadius: R_SMALL, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         const chartData = [{ name: s.title, labels: ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"], values: s.allocation.map((a: any) => a.val) }];
         p2.addChart(pres.ChartType.radar, chartData, { x: 0.6, y: 1.5, w: 3.3, h: 3.3, radarStyle: "marker", chartColors: [style.color], chartColorsOpacity: 40, valAxisHidden: true, legend: { show: false }, catAxisLabelFontSize: 9, catAxisLabelColor: "64748B", catAxisLabelFontFace: "Meiryo UI" } as any);
 
@@ -722,8 +725,9 @@ export default function Home() {
 
         p2.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
       }
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
       await withTimeout(
-        pres.writeFile({ fileName: `${theme.replace(/\s+/g, '_')}_ScenarioReport.pptx` }),
+        pres.writeFile({ fileName: `${theme.replace(/\s+/g, '_')}_ScenarioReport_${SYSTEM_CONFIG.VERSION}_${ts}.pptx` }),
         20000,
         "PPTX write"
       );
@@ -1138,14 +1142,6 @@ export default function Home() {
             </h1>
           </div>
           <div className="flex items-center gap-3 text-gray-400">
-            <button
-              onClick={() => setIsHelpOpen(true)}
-              className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-indigo-500 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 sm:px-3 sm:py-2 rounded-lg transition border border-indigo-200"
-              title="ヘルプを表示"
-            >
-              <Icons.Help /> HELP
-            </button>
-            <div className="h-4 w-px bg-gray-200"></div>
             {result && (
               <>
                 <button onClick={() => {
@@ -1156,31 +1152,41 @@ export default function Home() {
                     });
                     setIsCustomAxesMode(true);
                   }
-                  setResult(null);
-                }} className="flex items-center gap-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition" title="新しい分析を始める">
+                    setResult(null);
+                }} className="flex items-center gap-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition" title="新規: 現在の結果を閉じて新しい分析を開始します">
                   <Icons.Plus /> 新規
                 </button>
-
-                {plan === 'pro' ? (
-                  <button onClick={handleExportPptx} className="flex items-center gap-1 text-xs font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-2 rounded-lg transition" title="PowerPointで書き出し">
-                    <Icons.Presentation /> PPTX
-                  </button>
-                ) : (
-                  <button onClick={() => alert("🔒 Proプラン限定機能です。")} className="flex items-center gap-1 text-xs font-bold text-gray-400 bg-gray-100 px-3 py-2 rounded-lg cursor-not-allowed" title="Proプランで利用可能">
-                    <Icons.Lock /> PPTX
-                  </button>
-                )}
               </>
             )}
 
-            <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition" title="ファイルを開く">
+            <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition" title="読込: 保存済みJSONプロジェクトを読み込みます">
               <Icons.Upload /> 読込
             </button>
-            <button onClick={handleSaveProject} disabled={!result} className={`flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition ${!result ? 'opacity-50 cursor-not-allowed' : ''}`} title="プロジェクトを保存">
+            <button onClick={handleSaveProject} disabled={!result} className={`flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition ${!result ? 'opacity-50 cursor-not-allowed' : ''}`} title="保存: 現在の分析結果をJSONで保存します">
               <Icons.Save /> 保存
             </button>
-            <button onClick={handleExportHtml} disabled={!result} className={`flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition ${!result ? 'opacity-50 cursor-not-allowed' : ''}`} title="閲覧用HTMLを書き出し">
+            <button onClick={handleExportHtml} disabled={!result} className={`flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition ${!result ? 'opacity-50 cursor-not-allowed' : ''}`} title="HTML: 閲覧専用の配布用HTMLを書き出します">
               <Icons.Download /> HTML
+            </button>
+            <button
+              onClick={plan === 'pro' ? handleExportPptx : () => alert("🔒 Proプラン限定機能です。")}
+              disabled={!result}
+              className={`flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg transition ${plan === 'pro'
+                ? 'text-orange-600 bg-orange-50 hover:bg-orange-100'
+                : 'text-gray-400 bg-gray-100'
+                } ${!result ? 'opacity-50 cursor-not-allowed hover:bg-inherit' : ''}`}
+              title={plan === 'pro'
+                ? "PPTX: PowerPoint形式でレポートを書き出します"
+                : "PPTX: Proプランで利用できます"}
+            >
+              {plan === 'pro' ? <Icons.Presentation /> : <Icons.Lock />} PPTX
+            </button>
+            <button
+              onClick={() => setIsHelpOpen(true)}
+              className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-indigo-500 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 sm:px-3 sm:py-2 rounded-lg transition border border-indigo-200"
+              title="HELP: このアプリの使い方をAIに質問できます"
+            >
+              <Icons.Help /> HELP
             </button>
 
             <div className="h-6 w-px bg-gray-300 mx-1"></div>
