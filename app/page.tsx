@@ -16,7 +16,7 @@ import CheckoutButton from "./CheckoutButton";
 // ==========================================
 const SYSTEM_CONFIG = {
   APP_NAME: "AI Scenario Planner",
-  VERSION: "v.0.1.7",
+  VERSION: "v.0.1.8",
   COPYRIGHT: "© 2026 GURISAN. All Rights Reserved"
 };
 
@@ -549,12 +549,25 @@ export default function Home() {
     setIsExporting(true);
 
     try {
+      const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+        return Promise.race([
+          promise,
+          new Promise<T>((_, reject) => {
+            setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+          })
+        ]);
+      };
+      const truncateForSlide = (text: string, maxChars: number) => {
+        if (!text) return "";
+        return text.length > maxChars ? `${text.slice(0, maxChars)}...` : text;
+      };
+
       const pres = new PptxGenJS();
       const LAYOUT = {
         W: 10.0, H: 5.625, MARGIN: 0.4,
-        COLOR: { MAIN: "1E293B", SUB: "64748B", ACCENT: "4F46E5", BG: "F8FAFC", WHITE: "FFFFFF", AXIS_LINE: "CBD5E1" }
+        COLOR: { MAIN: "1F2937", SUB: "64748B", ACCENT: "4F46E5", ACCENT2: "7C3AED", BG: "F0F4F8", WHITE: "FFFFFF", AXIS_LINE: "CBD5E1" }
       };
-      const JP_FONT = { fontFace: "Meiryo UI" };
+      const JP_FONT = { fontFace: "Yu Gothic UI" };
       const COPYRIGHT_STYLE = { x: 0, y: 5.4, w: "100%", align: "right", fontSize: 8, color: "94A3B8", margin: 0.2, ...JP_FONT };
       const SCENARIO_STYLES: any = { A: { color: "EAB308", bg: "FEFCE8" }, B: { color: "EF4444", bg: "FEF2F2" }, C: { color: "6B7280", bg: "F9FAFB" }, D: { color: "3B82F6", bg: "EFF6FF" } };
 
@@ -570,21 +583,22 @@ export default function Home() {
       // 1. 表紙
       let slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
-      slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: "100%", h: 0.15, fill: { color: LAYOUT.COLOR.ACCENT } });
-      slide.addText(SYSTEM_CONFIG.APP_NAME, { x: 0.5, y: 1.5, w: 9, fontSize: 14, color: LAYOUT.COLOR.ACCENT, bold: true, align: "center", charSpacing: 3, ...JP_FONT });
-      slide.addText(theme, { x: 0.5, y: 2.0, w: 9, fontSize: 36, color: LAYOUT.COLOR.MAIN, bold: true, align: "center", fontFace: "Meiryo UI", shrinkText: true });
+      slide.addShape(pres.ShapeType.roundRect, { x: 0.8, y: 0.8, w: 8.4, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, radius: 0.04, shadow: { type: "outer", color: "000000", opacity: 0.08, blur: 4, offset: 2, angle: 90 } } as any);
+      slide.addText(SYSTEM_CONFIG.APP_NAME, { x: 1.2, y: 1.3, w: 7.6, fontSize: 12, color: LAYOUT.COLOR.ACCENT, bold: true, align: "center", charSpacing: 1.5, ...JP_FONT });
+      slide.addText(theme, { x: 1.2, y: 1.7, w: 7.6, fontSize: 30, color: LAYOUT.COLOR.ACCENT2, bold: true, align: "center", shrinkText: true, ...JP_FONT });
       if (summaryDetails) {
-        slide.addShape(pres.ShapeType.rect, { x: 1.5, y: 3.2, w: 7, h: 1.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: 0.05, shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } } as any);
-        slide.addText("前提条件 / コンテキスト", { x: 1.7, y: 3.4, w: 6.6, fontSize: 10, color: LAYOUT.COLOR.SUB, bold: true, ...JP_FONT });
-        slide.addText(summaryDetails, { x: 1.7, y: 3.7, w: 6.6, h: 1.1, fontSize: 11, color: LAYOUT.COLOR.MAIN, align: "left", valign: "top", lineSpacing: 18, shrinkText: true, ...JP_FONT });
+        slide.addShape(pres.ShapeType.roundRect, { x: 1.3, y: 3.0, w: 7.4, h: 1.6, fill: { color: "F8FAFC" }, line: { color: "E2E8F0", width: 1 }, radius: 0.04 } as any);
+        slide.addText("前提条件 / コンテキスト", { x: 1.55, y: 3.2, w: 6.9, fontSize: 10, color: LAYOUT.COLOR.SUB, bold: true, ...JP_FONT });
+        slide.addText(summaryDetails, { x: 1.55, y: 3.45, w: 6.9, h: 0.95, fontSize: 10, color: LAYOUT.COLOR.MAIN, align: "left", valign: "top", lineSpacingMultiple: 1.2, shrinkText: true, ...JP_FONT });
       }
-      slide.addText(`Generated on ${new Date().toLocaleDateString()} | Ver: ${SYSTEM_CONFIG.VERSION}`, { x: 0.5, y: 5.2, w: 9, fontSize: 9, color: "94A3B8", align: "center" });
+      slide.addText(`Generated on ${new Date().toLocaleDateString()} | Ver: ${SYSTEM_CONFIG.VERSION}`, { x: 0.5, y: 5.2, w: 9, fontSize: 9, color: "94A3B8", align: "center", ...JP_FONT });
       slide.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE, align: "center", y: 5.4 } as any);
 
       // 2. マトリクス
       slide = pres.addSlide();
       slide.background = { color: LAYOUT.COLOR.BG };
-      slide.addText("シナリオマトリクス", { x: 0.4, y: 0.3, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
+      slide.addShape(pres.ShapeType.roundRect, { x: 3.6, y: 0.2, w: 2.8, h: 0.5, fill: { color: LAYOUT.COLOR.ACCENT }, line: { color: LAYOUT.COLOR.ACCENT, width: 0 }, radius: 0.04 } as any);
+      slide.addText("シナリオマトリクス", { x: 3.6, y: 0.28, w: 2.8, h: 0.3, fontSize: 13, bold: true, color: "FFFFFF", align: "center", ...JP_FONT });
       const chartX = 1.2, chartY = 1.0, chartW = 8.2, chartH = 4.0;
       const centerX = chartX + chartW / 2;
       const centerY = chartY + chartH / 2;
@@ -605,10 +619,10 @@ export default function Home() {
         const s = result.scenarios.find((sc: any) => sc.id.includes(posId));
         if (!s) return;
         const style = SCENARIO_STYLES[posId] || SCENARIO_STYLES.C;
-        slide.addShape(pres.ShapeType.rect, { x: x, y: y, w: cardW, h: cardH, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, rectRadius: 0.05, shadow: { type: "outer", color: "000000", opacity: 0.1, blur: 5, offset: 3, angle: 90 } } as any);
-        slide.addShape(pres.ShapeType.rect, { x: x, y: y, w: cardW, h: 0.08, fill: { color: style.color }, rectRadius: 0.02 } as any);
-        slide.addText(`Scenario ${posId}`, { x: x + 0.2, y: y + 0.3, w: 2.0, fontSize: 10, bold: true, color: style.color });
-        slide.addText(`${s.probability}%`, { x: x + cardW - 1.2, y: y + 0.3, w: 1.0, align: "right", fontSize: 10, bold: true, color: LAYOUT.COLOR.SUB });
+        slide.addShape(pres.ShapeType.roundRect, { x: x, y: y, w: cardW, h: cardH, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, radius: 0.04, shadow: { type: "outer", color: "000000", opacity: 0.08, blur: 3, offset: 2, angle: 90 } } as any);
+        slide.addShape(pres.ShapeType.roundRect, { x: x + cardW - 0.55, y: y, w: 0.55, h: 0.26, fill: { color: style.color }, line: { color: style.color, width: 0 }, radius: 0.04 } as any);
+        slide.addText(`Scenario ${posId}`, { x: x + 0.2, y: y + 0.18, w: 2.0, fontSize: 9, bold: true, color: "94A3B8", ...JP_FONT });
+        slide.addText(`${s.probability}%`, { x: x + cardW - 0.52, y: y + 0.03, w: 0.5, h: 0.16, align: "center", fontSize: 8, bold: true, color: "FFFFFF", ...JP_FONT });
         slide.addText(s.title, { x: x + 0.2, y: y + 0.5, w: cardW - 0.4, h: 0.6, fontSize: 12, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true, ...JP_FONT });
         slide.addText(s.headline, { x: x + 0.2, y: y + 1.0, w: cardW - 0.4, h: 0.7, fontSize: 9, color: LAYOUT.COLOR.SUB, valign: "top", shrinkText: true, ...JP_FONT });
       };
@@ -621,7 +635,8 @@ export default function Home() {
       // 3. 戦略ポートフォリオ比較 (Combined Radar & Analysis)
       let pPortfolio = pres.addSlide();
       pPortfolio.background = { color: LAYOUT.COLOR.BG };
-      pPortfolio.addText("戦略ポートフォリオ比較", { x: 0.4, y: 0.3, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
+      pPortfolio.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 0.2, w: 3.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, radius: 0.04 } as any);
+      pPortfolio.addText("戦略ポートフォリオ比較", { x: 0.6, y: 0.29, w: 2.8, fontSize: 13, bold: true, color: LAYOUT.COLOR.MAIN, ...JP_FONT });
 
       // Combined Radar Chart
       const combinedChartData = result.scenarios.map((s: any) => ({
@@ -648,7 +663,8 @@ export default function Home() {
       } as any);
 
       // Portfolio Analysis Text
-      pPortfolio.addShape(pres.ShapeType.rect, { x: 5.2, y: 1.2, w: 4.4, h: 3.8, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+      pPortfolio.addShape(pres.ShapeType.roundRect, { x: 5.2, y: 1.2, w: 4.4, h: 3.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: "E2E8F0", width: 1 }, radius: 0.04, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+      pPortfolio.addShape(pres.ShapeType.rect, { x: 5.2, y: 1.2, w: 0.05, h: 3.8, fill: { color: LAYOUT.COLOR.ACCENT } });
       pPortfolio.addText("📊 戦略ポートフォリオ分析", { x: 5.4, y: 1.4, fontSize: 11, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI" });
       pPortfolio.addText(result.portfolioAnalysis || "No analysis data.", { x: 5.4, y: 1.8, w: 4.0, h: 3.0, fontSize: 10, color: "374151", align: "justify", valign: "top", lineSpacing: 16, shrinkText: true, ...JP_FONT });
 
@@ -660,18 +676,18 @@ export default function Home() {
         const style = SCENARIO_STYLES[sid];
         const p1 = pres.addSlide();
         p1.background = { color: LAYOUT.COLOR.BG };
-        p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.8, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+        p1.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 0.3, w: 9.0, h: 0.8, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, radius: 0.04, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 0.15, h: 0.8, fill: { color: style.color } });
-        p1.addText(`${s.id}: ${s.title}`, { x: 0.8, y: 0.3, w: 7.0, h: 0.8, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, fontFace: "Meiryo UI", valign: "middle" });
+        p1.addText(`${s.id}: ${s.title}`, { x: 0.8, y: 0.3, w: 7.0, h: 0.8, fontSize: 20, bold: true, color: LAYOUT.COLOR.MAIN, valign: "middle", ...JP_FONT });
         p1.addText(`確率: ${s.probability}%`, { x: 8.0, y: 0.3, w: 1.3, h: 0.8, fontSize: 12, align: "center", color: style.color, bold: true, valign: "middle", ...JP_FONT });
-        p1.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.3, w: 9.0, h: 4.0, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+        p1.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.3, w: 9.0, h: 4.0, fill: { color: style.bg }, line: { color: style.color, width: 1 }, radius: 0.04, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         if (s.imageUrl && s.imageUrl.startsWith("data:image")) { p1.addImage({ data: s.imageUrl, x: 0.8, y: 1.6, w: 2.8, h: 1.58 }); }
         p1.addText(s.headline, { x: 3.8, y: 1.6, w: 5.4, h: 1.5, fontSize: 16, bold: true, color: LAYOUT.COLOR.MAIN, valign: "top", shrinkText: true, ...JP_FONT });
         p1.addText("STORY", { x: 0.8, y: 3.3, fontSize: 10, bold: true, color: "94A3B8" });
         p1.addText(s.story, { x: 0.8, y: 3.5, w: 8.4, h: 1.6, fontSize: 9, color: "374151", align: "justify", valign: "top", shrinkText: false, lineSpacing: 14, ...JP_FONT });
         if (s.audioUrl) {
           try {
-            const audioB64 = await urlToBase64(s.audioUrl);
+            const audioB64 = await withTimeout(urlToBase64(s.audioUrl), 8000, "Audio convert");
             p1.addMedia({ data: `data:audio/wav;base64,${audioB64}`, x: 3.7, y: 2.7, w: 0.5, h: 0.5, type: "audio" });
           } catch (e) {
             console.error("Audio embed failed", e);
@@ -681,33 +697,42 @@ export default function Home() {
 
         const p2 = pres.addSlide();
         p2.background = { color: LAYOUT.COLOR.BG };
-        p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 0.3, w: 9.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05 } as any);
+        p2.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 0.3, w: 9.0, h: 0.5, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, radius: 0.04 } as any);
         p2.addText(`${s.id} - Strategy & Analysis`, { x: 0.7, y: 0.3, h: 0.5, fontSize: 12, bold: true, color: LAYOUT.COLOR.SUB, valign: "middle" });
-        p2.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.0, w: 3.5, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, rectRadius: 0.05, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
+        p2.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.0, w: 3.5, h: 4.2, fill: { color: LAYOUT.COLOR.WHITE }, line: { color: style.color, width: 1 }, radius: 0.04, shadow: { type: "outer", opacity: 0.05, blur: 3, offset: 2, angle: 90 } } as any);
         const chartData = [{ name: s.title, labels: ["イノベーション", "マーケティング", "人材・組織", "既存事業", "財務・リスク"], values: s.allocation.map((a: any) => a.val) }];
         p2.addChart(pres.ChartType.radar, chartData, { x: 0.6, y: 1.5, w: 3.3, h: 3.3, radarStyle: "marker", chartColors: [style.color], chartColorsOpacity: 40, valAxisHidden: true, legend: { show: false }, catAxisLabelFontSize: 9, catAxisLabelColor: "64748B", catAxisLabelFontFace: "Meiryo UI" } as any);
 
-        const layoutY = { insight: 1.1, action: 2.6, signs: 4.1 };
+        const layoutY = { insight: 1.1, action: 2.75, signs: 4.05 };
         const contentX = 4.4;
         const colW = 5.2;
 
         // BUSINESS INSIGHT
-        p2.addText("BUSINESS INSIGHT", { x: contentX, y: layoutY.insight, fontSize: 10, bold: true, color: LAYOUT.COLOR.ACCENT });
-        p2.addText(s.insight.breakthrough, { x: contentX, y: layoutY.insight + 0.25, w: colW, h: 1.1, fontSize: 10, color: "1F2937", valign: "top", shrinkText: true, ...JP_FONT });
+        p2.addText("BUSINESS INSIGHT", { x: contentX, y: layoutY.insight, fontSize: 10, bold: true, color: "4F46E5", ...JP_FONT });
+        p2.addText(truncateForSlide(s.insight.breakthrough || "", 320), { x: contentX, y: layoutY.insight + 0.25, w: colW, h: 1.25, fontSize: 9, color: "1F2937", valign: "top", shrinkText: true, ...JP_FONT });
 
         // ACTION
-        p2.addText("ACTION", { x: contentX, y: layoutY.action, fontSize: 10, bold: true, color: LAYOUT.COLOR.ACCENT });
-        p2.addText(s.actionAdvice, { x: contentX, y: layoutY.action + 0.25, w: colW, h: 1.1, fontSize: 10, color: "1F2937", valign: "top", shrinkText: true, ...JP_FONT });
+        p2.addText("ACTION", { x: contentX, y: layoutY.action, fontSize: 10, bold: true, color: "16A34A", ...JP_FONT });
+        p2.addText(truncateForSlide(s.actionAdvice || "", 220), { x: contentX, y: layoutY.action + 0.23, w: colW, h: 1.0, fontSize: 9, color: "1F2937", valign: "top", shrinkText: true, ...JP_FONT });
 
         // EARLY SIGNS
-        p2.addText("EARLY SIGNS (予兆)", { x: contentX, y: layoutY.signs, fontSize: 10, bold: true, color: LAYOUT.COLOR.ACCENT });
+        p2.addText("EARLY SIGNS (予兆)", { x: contentX, y: layoutY.signs, fontSize: 10, bold: true, color: "EA580C", ...JP_FONT });
         const signsText = s.earlySigns.map((sign: string) => `• ${sign}`).join("\n");
-        p2.addText(signsText, { x: contentX, y: layoutY.signs + 0.25, w: colW, h: 1.0, fontSize: 10, color: "4B5563", valign: "top", shrinkText: true, lineSpacing: 14, ...JP_FONT });
+        p2.addText(truncateForSlide(signsText, 180), { x: contentX, y: layoutY.signs + 0.23, w: colW, h: 0.95, fontSize: 9, color: "4B5563", valign: "top", shrinkText: true, lineSpacing: 14, ...JP_FONT });
 
         p2.addText(SYSTEM_CONFIG.COPYRIGHT, { ...COPYRIGHT_STYLE } as any);
       }
-      pres.writeFile({ fileName: `${theme.replace(/\s+/g, '_')}_ScenarioReport.pptx` });
-    } catch (e) { alert("PPTX生成失敗"); } finally { setIsExporting(false); setIsLoading(false); }
+      await withTimeout(
+        pres.writeFile({ fileName: `${theme.replace(/\s+/g, '_')}_ScenarioReport.pptx` }),
+        20000,
+        "PPTX write"
+      );
+    } catch (e: any) {
+      alert(`PPTX生成失敗: ${e?.message || "unknown error"}`);
+    } finally {
+      setIsExporting(false);
+      setIsLoading(false);
+    }
   };
 
   const handleSaveProject = async () => {
@@ -887,7 +912,7 @@ export default function Home() {
             ${scenarios.map((s: any) => {
               const color = colorMap[s.colorCode] || colorMap.gray;
               return `
-              <div class="scenario-card" style="border-color:${color}33;">
+              <div class="scenario-card" style="border-color:${color};">
                 <div class="scenario-prob" style="background:${color};">${escapeHtml(String(s.probability || ""))}%</div>
                 <span class="scenario-id">${escapeHtml(s.id)}</span>
                 <div style="font-weight:800; font-size:14px;">${escapeHtml(s.title || "")}</div>
@@ -1301,7 +1326,7 @@ export default function Home() {
                   <div className="flex flex-col h-full">
                     <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-4 relative z-10 h-[500px]">
                       {result.scenarios.map((s: any) => (
-                        <div key={s.id} className={`p-4 rounded-xl border flex flex-col relative bg-white/90 shadow-sm z-10 overflow-hidden h-full ${s.colorCode === 'red' ? 'border-red-200' : s.colorCode === 'blue' ? 'border-blue-200' : s.colorCode === 'yellow' ? 'border-yellow-200' : 'border-gray-200'}`}>
+                        <div key={s.id} className={`p-4 rounded-xl border flex flex-col relative bg-white/90 shadow-sm z-10 overflow-hidden h-full ${s.colorCode === 'red' ? 'border-red-500' : s.colorCode === 'blue' ? 'border-blue-500' : s.colorCode === 'yellow' ? 'border-yellow-500' : 'border-gray-500'}`}>
                           <div className={`absolute top-0 right-0 text-xs font-bold px-3 py-1.5 rounded-bl-xl text-white ${s.colorCode === 'red' ? 'bg-red-500' : s.colorCode === 'blue' ? 'bg-blue-500' : s.colorCode === 'yellow' ? 'bg-yellow-500' : 'bg-gray-500'}`}>{s.probability}%</div>
                           <span className="text-[10px] font-bold text-gray-400 mb-1 block">{s.id}</span>
                           <h4 className="font-bold text-sm leading-tight mb-2 text-gray-900">{s.title}</h4>
